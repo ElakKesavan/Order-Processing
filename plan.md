@@ -56,8 +56,8 @@ We will use Hibernate to auto-generate the schema for the MVP, ensuring structur
 * `GET /api/v1/orders/{id}` (Auth: Customer/Admin)
   * Customers can only retrieve their own orders. Admins can retrieve any order.
 * `GET /api/v1/orders` (Auth: Customer/Admin)
-  * Unified endpoint to fetch orders (includes optional filtering `?status=PENDING`). 
-  * Logic extracts JWT claims: if identity is `ADMIN`, all matching orders are returned; if `CUSTOMER`, orders are heavily restricted precisely to that customer.
+  * Unified endpoint to fetch orders conditionally filtering `?status=PENDING`. Requires pagination parameters `?page=0&size=20`.
+  * Logic extracts JWT claims: if identity is `ADMIN`, all matching orders are returned; if `CUSTOMER`, orders are strictly restricted to that customer, returned as a paginated response.
 * `PATCH /api/v1/orders/{id}/status` (Auth: Admin)
   * Updates the order status to `SHIPPED`, `DELIVERED`, etc.
 * `POST /api/v1/orders/{id}/cancel` (Auth: Customer)

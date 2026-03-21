@@ -1,56 +1,32 @@
-# E-Commerce Order Processing System
+# Order Processing System (MVP)
 
-A robust, enterprise-ready E-commerce Order Processing backend built with Java 17 and Spring Boot 3.
+A robust Spring Boot backend serving as the central engine for an E-commerce Order Processing System.
 
-## 🚀 Features
+## Features
+- **User Authentication**: Secure JWT-based login and registration. Includes role-based checks for `CUSTOMER` and `ADMIN` users.
+- **Order Management**: Create, view, update, and cancel bounded orders. Implements strict tenancy rules (Customers view their own orders; Admins can view all).
+- **External Mock Mocks**: Simulates responses from imaginary external Inventory and Payment processors securely isolated using `Service` facades.
+- **Pagination**: Safe scaling of internal system lists via parameterization across `GET` order endpoints (`?page=0&size=20`).
+- **Scheduled Status Update**: Background `PENDING` -> `PROCESSING` state machine executing on a fixed 5-minute schedule.
 
-* **Order Management:** Place, retrieve, list, and cancel orders efficiently.
-* **Security & Authentication:** JWT-based stateless authentication with strict Role-Based Access Control (Admin vs. Customer).
-* **Automated Background Processing:** Scheduled temporal jobs automatically transition `PENDING` orders to `PROCESSING`.
-* **Data Integrity:** Real-time PostgreSQL database interactions optimized via Spring Data JPA.
-* **Mock Integrations:** Standalone localized mock clients imitating Inventory and Payment gateway behaviors.
+## Tech Stack
+- **Framework**: JVM Java 17+, Spring Boot 3.x
+- **Database**: PostgreSQL with Hibernate / Spring Data JPA
+- **Security**: Spring Security + JWT
+- **Build Tool**: Maven
 
-## 🛠️ Technology Stack
+## Architecture & Code Standards
+- Code quality is strictly enforced via **Spotless** and **Checkstyle** embedded directly into the Maven lifecycle.
+- **JaCoCo** confirms extensive Code coverage.
 
-* **Language:** Java 17+
-* **Framework:** Spring Boot 3.x
-* **Data Access:** Spring Data JPA / Hibernate
-* **Database:** PostgreSQL
-* **Security:** Spring Security + JSON Web Tokens (JWT)
-* **Code Quality:** Spotless, Checkstyle, JaCoCo
-* **Build Tool:** Maven
+## Running the Application
+Ensure PostgreSQL is running locally, and adjust database configurations in `application.yml` accordingly.
 
-## 📦 Getting Started
-
-### Prerequisites
-* Java 17 JDK or higher
-* Maven 3.6+
-* PostgreSQL 14+
-
-### Installation & Setup
-
-1. **Clone the repository** (or navigate to the project root directory).
-2. **Configure Database:**
-   Ensure your local PostgreSQL server is running. Create an empty database named `order_processing`. Inside your project, verify `src/main/resources/application.yml` matches your database credentials.
-3. **Run the Application:**
-   ```bash
-   mvn spring-boot:run
-   ```
-4. **Access the API:**
-   The server natively starts on `http://localhost:8080`.
-
-## 📖 API Documentation (Overview)
-
-### 🔐 Authentication
-* `POST /api/v1/auth/register` - Create a new user (Restricted to `CUSTOMER` role)
-* `POST /api/v1/auth/login` - Authenticate and yield a bearer token
-
-### 📦 Orders
-* `POST /api/v1/orders` - Place a new order with items (Customer restricted)
-* `GET /api/v1/orders` - Unified endpoint for listing orders (Roles dictate response behavior via JWT)
-* `GET /api/v1/orders/{id}` - Fetch explicit order details
-* `PATCH /api/v1/orders/{id}/status` - Override an order's lifecycle status (Admin restricted)
-* `POST /api/v1/orders/{id}/cancel` - Request cancellation of a `PENDING` order (Customer restricted)
-
-## ⏳ Background Orchestration
-The system incorporates an automated Spring `@Scheduled` orchestrator that periodically seeks out `PENDING` orders idling for more than 5 minutes and advances them sequentially to `PROCESSING`.
+Run the build explicitly resolving Maven plugins and tests:
+```bash
+./mvnw clean install
+```
+Then start the internal boot engine:
+```bash
+./mvnw spring-boot:run
+```
