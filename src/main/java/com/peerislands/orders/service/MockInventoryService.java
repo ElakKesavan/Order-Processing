@@ -22,10 +22,10 @@ public class MockInventoryService {
 
         int roll = random.nextInt(100);
 
-        // 80% Success, 10% Insufficient Stock, 10% Service Unavailable
+        // 80% Success, 15% Insufficient Stock, 5% Service Unavailable
         if (roll < 80) {
             return InventoryStatus.SUCCESS;
-        } else if (roll < 90) {
+        } else if (roll < 95) {
             return InventoryStatus.INSUFFICIENT_STOCK;
         } else {
             return InventoryStatus.SERVICE_UNAVAILABLE;
