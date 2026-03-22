@@ -19,7 +19,7 @@ spring:
 app:
   security:
     jwt:
-      secret: "zQ0vT9!A@6jX#7wM2*cN$9bV&8lP5sE1yR4uI^3oK"
+      secret: "dGhpcyBpcyBhIHNlY3VyZSBzZWNyZXQga2V5IGZvciBqd3QgdG9rZW4gZ2VuZXJhdGlvbiE="
       expirationMs: 3600000 # 1 Hour
 
 server:
