@@ -17,10 +17,15 @@ public class AuthController {
     @Autowired private AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> authenticateUser(
+    public ResponseEntity<?> authenticateUser(
             @Valid @RequestBody LoginRequest loginRequest) {
-        JwtResponse response = authService.authenticate(loginRequest);
-        return ResponseEntity.ok(response);
+        try {
+            JwtResponse response = authService.authenticate(loginRequest);
+            return ResponseEntity.ok(response);
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            return ResponseEntity.status(401)
+                    .body(new MessageResponse("Bad credentials: " + e.getMessage()));
+        }
     }
 
     @PostMapping("/register")

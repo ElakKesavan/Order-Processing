@@ -1,8 +1,6 @@
 package com.peerislands.orders.payload.response;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Data
 public class JwtResponse {
