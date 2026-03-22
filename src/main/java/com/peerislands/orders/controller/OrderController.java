@@ -1,11 +1,13 @@
 package com.peerislands.orders.controller;
 
+import com.peerislands.orders.mapper.OrderMapper;
 import com.peerislands.orders.model.Order;
 import com.peerislands.orders.model.OrderStatus;
 import com.peerislands.orders.model.Role;
 import com.peerislands.orders.model.User;
 import com.peerislands.orders.payload.request.OrderRequest;
 import com.peerislands.orders.payload.response.MessageResponse;
+import com.peerislands.orders.payload.response.OrderResponse;
 import com.peerislands.orders.repository.UserRepository;
 import com.peerislands.orders.security.services.UserDetailsImpl;
 import com.peerislands.orders.service.OrderService;
@@ -27,6 +29,8 @@ public class OrderController {
 
     @Autowired private UserRepository userRepository;
 
+    @Autowired private OrderMapper orderMapper;
+
     private User getAuthenticatedUser(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         return userRepository
@@ -44,14 +48,14 @@ public class OrderController {
         try {
             User user = getAuthenticatedUser(authentication);
             Order createdOrder = orderService.createOrder(user, orderRequest);
-            return ResponseEntity.ok(createdOrder);
+            return ResponseEntity.ok(orderMapper.toOrderResponse(createdOrder));
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 
     @GetMapping
-    public ResponseEntity<Page<Order>> getOrders(
+    public ResponseEntity<Page<OrderResponse>> getOrders(
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -66,7 +70,7 @@ public class OrderController {
         } else {
             orders = orderService.getCustomerOrders(user, status, pageable);
         }
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(orders.map(orderMapper::toOrderResponse));
     }
 
     @GetMapping("/{id}")
@@ -74,7 +78,7 @@ public class OrderController {
         try {
             User user = getAuthenticatedUser(authentication);
             Order order = orderService.getOrderById(id, user);
-            return ResponseEntity.ok(order);
+            return ResponseEntity.ok(orderMapper.toOrderResponse(order));
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(new MessageResponse(e.getMessage()));
         } catch (IllegalArgumentException e) {
@@ -110,3 +114,4 @@ public class OrderController {
         }
     }
 }
+
