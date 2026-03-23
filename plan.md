@@ -48,7 +48,7 @@ We will use Hibernate to auto-generate the schema for the MVP, ensuring structur
 ### Authentication
 * `POST /api/v1/auth/register` - Register a new user (`CUSTOMER` role only. `ADMIN` accounts are seeded/created by a SYSTEM user via separate flow).
 * `POST /api/v1/auth/login` - Authenticate and receive a JWT.
-* **Authentication Helper**: A dedicated `AuthenticationHelper` component is employed to resolve security context into `User` entities cleanly, avoiding direct repository pollution in controllers.
+* **Authentication Helper**: A dedicated `AuthenticationHelper` component is employed to resolve security context into `User` entities cleanly, avoiding direct repository pollution in controllers. Sub-millisecond retrieval is guaranteed via Spring Cache abstraction using a local Caffeine cache-aside strategy configured with a 1-minute TTL.
 
 ### Orders
 * `POST /api/v1/orders` (Auth: Customer) 

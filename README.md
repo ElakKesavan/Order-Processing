@@ -5,6 +5,7 @@ A robust Spring Boot backend serving as the central engine for an E-commerce Ord
 ## Features
 - **User Authentication**: Secure JWT-based login and registration. Includes role-based checks for `CUSTOMER` and `ADMIN` users.
 - **Authentication Helper**: The logic for retrieving database entities from security context is centralized in `AuthenticationHelper`.
+- **Caching Engine**: Spring Cache abstraction with Caffeine cache-aside strategy ensures sub-millisecond user retrieval with a 1-minute TTL.
 - **Order Management**: Create, view, update, and cancel bounded orders. Implements strict tenancy rules (Customers view their own orders; Admins can view all).
 - **External Mock Mocks**: Simulates responses from imaginary external Inventory and Payment processors securely isolated using `Service` facades.
 - **Pagination**: Safe scaling of internal system lists via parameterization across `GET` order endpoints (`?page=0&size=20`).
