@@ -1,15 +1,16 @@
 package com.peerislands.orders.controller;
 
 import com.peerislands.orders.mapper.OrderMapper;
+import java.util.NoSuchElementException;
 import com.peerislands.orders.model.Order;
 import com.peerislands.orders.model.OrderStatus;
 import com.peerislands.orders.model.Role;
 import com.peerislands.orders.model.User;
 import com.peerislands.orders.payload.request.OrderRequest;
+import com.peerislands.orders.payload.request.UpdateOrderStatusRequest;
 import com.peerislands.orders.payload.response.MessageResponse;
 import com.peerislands.orders.payload.response.OrderResponse;
-import com.peerislands.orders.repository.UserRepository;
-import com.peerislands.orders.security.services.UserDetailsImpl;
+import com.peerislands.orders.security.services.AuthenticationHelper;
 import com.peerislands.orders.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,28 +26,21 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/orders")
 public class OrderController {
 
-    @Autowired private OrderService orderService;
+    @Autowired
+    private OrderService orderService;
 
-    @Autowired private UserRepository userRepository;
+    @Autowired
+    private OrderMapper orderMapper;
 
-    @Autowired private OrderMapper orderMapper;
-
-    private User getAuthenticatedUser(Authentication authentication) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        return userRepository
-                .findById(userDetails.getId())
-                .orElseThrow(
-                        () ->
-                                new IllegalStateException(
-                                        "Authenticated user not found in database."));
-    }
+    @Autowired
+    private AuthenticationHelper authenticationHelper;
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<?> createOrder(
             @Valid @RequestBody OrderRequest orderRequest, Authentication authentication) {
         try {
-            User user = getAuthenticatedUser(authentication);
+            User user = authenticationHelper.getAuthenticatedUser(authentication);
             Order createdOrder = orderService.createOrder(user, orderRequest);
             return ResponseEntity.ok(orderMapper.toOrderResponse(createdOrder));
         } catch (IllegalStateException e) {
@@ -61,7 +55,7 @@ public class OrderController {
             @RequestParam(defaultValue = "20") int size,
             Authentication authentication) {
 
-        User user = getAuthenticatedUser(authentication);
+        User user = authenticationHelper.getAuthenticatedUser(authentication);
         Pageable pageable = PageRequest.of(page, size);
 
         Page<Order> orders;
@@ -76,42 +70,33 @@ public class OrderController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getOrderById(@PathVariable Long id, Authentication authentication) {
         try {
-            User user = getAuthenticatedUser(authentication);
+            User user = authenticationHelper.getAuthenticatedUser(authentication);
             Order order = orderService.getOrderById(id, user);
             return ResponseEntity.ok(orderMapper.toOrderResponse(order));
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(new MessageResponse(e.getMessage()));
-        } catch (IllegalArgumentException e) {
+        } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    @PostMapping("/{id}/cancel")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<?> cancelOrder(@PathVariable Long id, Authentication authentication) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateOrderStatusRequest request,
+            Authentication authentication) {
         try {
-            User user = getAuthenticatedUser(authentication);
-            orderService.cancelOrder(id, user);
-            return ResponseEntity.ok(new MessageResponse("Order cancelled successfully"));
+            User user = authenticationHelper.getAuthenticatedUser(authentication);
+            orderService.updateOrderStatus(id, request.getStatus(), user);
+            return ResponseEntity.ok(new MessageResponse("Order status updated to " + request.getStatus()));
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(new MessageResponse(e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
             return ResponseEntity.status(409).body(new MessageResponse(e.getMessage()));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateOrderStatus(
-            @PathVariable Long id, @RequestParam OrderStatus status) {
-        try {
-            orderService.updateOrderStatus(id, status);
-            return ResponseEntity.ok(new MessageResponse("Order status updated to " + status));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 }
-

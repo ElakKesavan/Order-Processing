@@ -48,6 +48,7 @@ We will use Hibernate to auto-generate the schema for the MVP, ensuring structur
 ### Authentication
 * `POST /api/v1/auth/register` - Register a new user (`CUSTOMER` role only. `ADMIN` accounts are seeded/created by a SYSTEM user via separate flow).
 * `POST /api/v1/auth/login` - Authenticate and receive a JWT.
+* **Authentication Helper**: A dedicated `AuthenticationHelper` component is employed to resolve security context into `User` entities cleanly, avoiding direct repository pollution in controllers.
 
 ### Orders
 * `POST /api/v1/orders` (Auth: Customer) 
@@ -58,10 +59,9 @@ We will use Hibernate to auto-generate the schema for the MVP, ensuring structur
 * `GET /api/v1/orders` (Auth: Customer/Admin)
   * Unified endpoint to fetch orders conditionally filtering `?status=PENDING`. Requires pagination parameters `?page=0&size=20`.
   * Logic extracts JWT claims: if identity is `ADMIN`, all matching orders are returned; if `CUSTOMER`, orders are strictly restricted to that customer, returned as a paginated response.
-* `PATCH /api/v1/orders/{id}/status` (Auth: Admin)
-  * Updates the order status to `SHIPPED`, `DELIVERED`, etc.
-* `POST /api/v1/orders/{id}/cancel` (Auth: Customer)
-  * Cancels the order. Fails with HTTP 400 or HTTP 409 if status is not `PENDING`.
+* `PATCH /api/v1/orders/{id}` (Auth: Admin/Customer)
+  * Unified endpoint for status transitions. Payload: `{ "status": "NEW_STATUS" }`.
+  * Logic: Admins can move orders forward (e.g., `SHIPPED`, `DELIVERED`). Customers can only set `CANCELLED` and only if the current status is `PENDING`. Fails with HTTP 400 (Bad Request) or HTTP 409 (Conflict) on violation.
 
 ## 4. Mock Integrations
 * **Inventory Service Mock**: Returns random/configured responses:

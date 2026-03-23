@@ -79,7 +79,7 @@ public class OrderService {
                 orderRepository
                         .findById(orderId)
                         .orElseThrow(
-                                () -> new IllegalArgumentException("Order not found: " + orderId));
+                                () -> new java.util.NoSuchElementException("Order not found: " + orderId));
 
         if (user.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(user.getId())) {
             throw new SecurityException("Unauthorized access to order.");
@@ -89,24 +89,33 @@ public class OrderService {
     }
 
     @Transactional
-    public void cancelOrder(Long orderId, User user) {
-        Order order = getOrderById(orderId, user);
+    public void updateOrderStatus(Long orderId, OrderStatus newStatus, User actor) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new java.util.NoSuchElementException("Order not found: " + orderId));
 
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new IllegalStateException("Cannot cancel order in status: " + order.getStatus());
+        // 1. Authorization check
+        if (actor.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(actor.getId())) {
+            throw new SecurityException("You can only update your own orders.");
         }
 
-        order.setStatus(OrderStatus.CANCELLED);
-        orderRepository.save(order);
-    }
-
-    @Transactional
-    public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
-        Order order =
-                orderRepository
-                        .findById(orderId)
-                        .orElseThrow(
-                                () -> new IllegalArgumentException("Order not found: " + orderId));
+        // 2. Role-specific constraints
+        if (actor.getRole() == Role.CUSTOMER) {
+            if (newStatus != OrderStatus.CANCELLED) {
+                throw new IllegalArgumentException("Customers can only update status to CANCELLED.");
+            }
+            if (order.getStatus() != OrderStatus.PENDING) {
+                throw new IllegalStateException("Orders can only be cancelled while in PENDING status.");
+            }
+        } else if (actor.getRole() == Role.ADMIN) {
+            // Admin specific rules
+            if (newStatus == OrderStatus.PENDING) {
+                throw new IllegalArgumentException("Cannot manually reset an order to PENDING.");
+            }
+            // Logic to prevent moving backwards after shipping
+            if (order.getStatus() == OrderStatus.DELIVERED && newStatus == OrderStatus.SHIPPED) {
+                throw new IllegalStateException("Cannot move a delivered order back to SHIPPED.");
+            }
+        }
 
         order.setStatus(newStatus);
         orderRepository.save(order);
