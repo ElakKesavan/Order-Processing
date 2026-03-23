@@ -5,6 +5,7 @@ import com.peerislands.orders.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import org.springframework.cache.annotation.Cacheable;
 
 @Component
 public class AuthenticationHelper {
@@ -16,6 +17,7 @@ public class AuthenticationHelper {
         this.userRepository = userRepository;
     }
 
+    @Cacheable(value = "users", key = "#authentication.principal.id")
     public User getAuthenticatedUser(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         return userRepository
