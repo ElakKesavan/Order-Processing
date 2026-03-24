@@ -11,9 +11,6 @@ A robust Spring Boot backend serving as the central engine for an E-commerce Ord
 - **Pagination**: Safe scaling of internal system lists via parameterization across `GET` order endpoints (`?page=0&size=20`).
 - **Scheduled Status Update**: Background `PENDING` -> `PROCESSING` state machine executing on a fixed 5-minute schedule.
 
-## Documentation
-- [API Specification](file:///c:/Users/elake/Projects/Order%20Processing%20-%20PeerIslands/Order%20Processing/docs/api_spec.md)
-
 ## Tech Stack
 - **Framework**: JVM Java 17+, Spring Boot 3.x
 - **Database**: PostgreSQL with Hibernate / Spring Data JPA
@@ -35,3 +32,11 @@ Then start the internal boot engine:
 ```bash
 ./mvnw spring-boot:run
 ```
+
+## API Documentation
+
+Interactive API documentation is available at:
+
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI Spec**: http://localhost:8080/v3/api-docs
+
