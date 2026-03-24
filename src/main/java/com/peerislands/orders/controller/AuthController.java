@@ -25,7 +25,7 @@ public class AuthController {
     @Autowired private AuthService authService;
 
     @PostMapping("/login")
-    @SecurityRequirements
+    @SecurityRequirements()
     @Operation(
             summary = "Authenticate user",
             description = "Validates credentials and returns a JWT access token")
@@ -57,7 +57,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @SecurityRequirements
+    @SecurityRequirements()
     @Operation(
             summary = "Register a new user",
             description = "Creates a new CUSTOMER account with the provided email and password")

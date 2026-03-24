@@ -8,7 +8,7 @@ import lombok.Data;
 public class JwtResponse {
     @Schema(
             description = "JWT access token",
-            example = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjdXN0b21lckBleGFtcGxlLmNvbSJ9.abc123")
+            example = "eyJhbGci...abc123")
     private String accessToken;
 
     @Schema(description = "Token type", example = "Bearer")
