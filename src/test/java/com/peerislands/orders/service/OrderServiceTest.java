@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest {
@@ -178,5 +180,44 @@ public class OrderServiceTest {
         assertThrows(
                 java.util.NoSuchElementException.class,
                 () -> orderService.updateOrderStatus(999L, OrderStatus.SHIPPED, admin));
+    }
+    @Test
+    void getCustomerOrders_DefaultSorting() {
+        User user = new User("test@test.com", "hash", Role.CUSTOMER);
+
+        orderService.getCustomerOrders(user, null, 0, 10, null);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(orderRepository).findByUser(eq(user), pageableCaptor.capture());
+
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertTrue(capturedPageable.getSort().isSorted());
+        assertEquals("updatedAt: DESC", capturedPageable.getSort().toString());
+    }
+
+    @Test
+    void getCustomerOrders_WithSorting_ShouldNotOverride() {
+        User user = new User("test@test.com", "hash", Role.CUSTOMER);
+
+        orderService.getCustomerOrders(user, null, 0, 10, "OrderId");
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(orderRepository).findByUser(eq(user), pageableCaptor.capture());
+
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertEquals("id: ASC", capturedPageable.getSort().toString());
+    }
+
+    @Test
+    void getAllOrders_DefaultSorting() {
+
+        orderService.getAllOrders(null, 0, 10, null);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(orderRepository).findAll(pageableCaptor.capture());
+
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertTrue(capturedPageable.getSort().isSorted());
+        assertEquals("updatedAt: DESC", capturedPageable.getSort().toString());
     }
 }

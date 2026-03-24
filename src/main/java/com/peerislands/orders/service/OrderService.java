@@ -1,15 +1,19 @@
 package com.peerislands.orders.service;
 
 import com.peerislands.orders.model.*;
+import com.peerislands.orders.payload.request.OrderFilter;
 import com.peerislands.orders.payload.request.OrderItemRequest;
 import com.peerislands.orders.payload.request.OrderRequest;
 import com.peerislands.orders.repository.OrderRepository;
 import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class OrderService {
@@ -60,20 +64,55 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public Page<Order> getCustomerOrders(User user, OrderStatus status, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public Page<Order> getCustomerOrders(User user, OrderFilter filter, int page, int size, String sortBy) {
+        Pageable pageable = createPageable(page, size, sortBy);
+        OrderStatus status = (filter != null) ? filter.getStatus() : null;
         if (status != null) {
             return orderRepository.findByUserAndStatus(user, status, pageable);
         }
         return orderRepository.findByUser(user, pageable);
     }
 
-    public Page<Order> getAllOrders(OrderStatus status, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public Page<Order> getAllOrders(OrderFilter filter, int page, int size, String sortBy) {
+        Pageable pageable = createPageable(page, size, sortBy);
+        OrderStatus status = (filter != null) ? filter.getStatus() : null;
         if (status != null) {
             return orderRepository.findByStatus(status, pageable);
         }
         return orderRepository.findAll(pageable);
     }
 
+    private Pageable createPageable(int page, int size, String sortBy) {
+        Sort sort = Sort.unsorted();
+        if (StringUtils.hasText(sortBy)) {
+            String sanitizedSort = sortBy.toLowerCase().replace(" ", "").replace("-", "").replace("_", "");
+            switch (sanitizedSort) {
+                case "orderid":
+                    sort = Sort.by(Sort.Direction.ASC, "id");
+                    break;
+                case "customerid":
+                case "userid":
+                    sort = Sort.by(Sort.Direction.ASC, "user.id");
+                    break;
+                case "createdat":
+                    sort = Sort.by(Sort.Direction.DESC, "createdAt");
+                    break;
+                case "updatedat":
+                    sort = Sort.by(Sort.Direction.DESC, "updatedAt");
+                    break;
+            }
+        }
+
+        if (sort.isUnsorted()) {
+            sort = Sort.by(Sort.Direction.DESC, "updatedAt");
+        }
+
+        return PageRequest.of(page, size, sort);
+    }
+
+    @Transactional(readOnly = true)
     public Order getOrderById(Long orderId, User user) {
         Order order = orderRepository
                 .findById(orderId)

@@ -2,9 +2,9 @@ package com.peerislands.orders.controller;
 
 import com.peerislands.orders.mapper.OrderMapper;
 import com.peerislands.orders.model.Order;
-import com.peerislands.orders.model.OrderStatus;
 import com.peerislands.orders.model.Role;
 import com.peerislands.orders.model.User;
+import com.peerislands.orders.payload.request.OrderFilter;
 import com.peerislands.orders.payload.request.OrderRequest;
 import com.peerislands.orders.payload.request.UpdateOrderStatusRequest;
 import com.peerislands.orders.payload.response.MessageResponse;
@@ -19,11 +19,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -34,11 +33,14 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Orders", description = "Order lifecycle management endpoints")
 public class OrderController {
 
-    @Autowired private OrderService orderService;
+    @Autowired
+    private OrderService orderService;
 
-    @Autowired private OrderMapper orderMapper;
+    @Autowired
+    private OrderMapper orderMapper;
 
-    @Autowired private AuthenticationHelper authenticationHelper;
+    @Autowired
+    private AuthenticationHelper authenticationHelper;
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -81,7 +83,7 @@ public class OrderController {
             summary = "List orders (paginated)",
             description =
                     "Returns paginated orders. ADMINs see all orders; CUSTOMERs see only their"
-                            + " own. Optionally filter by status.")
+                            + " own. Optionally filter by status or sort.")
     @ApiResponses(
             value = {
                 @ApiResponse(
@@ -89,9 +91,13 @@ public class OrderController {
                         description = "Page of orders returned successfully")
             })
     public ResponseEntity<Page<OrderResponse>> getOrders(
-            @Parameter(description = "Filter by order status", example = "PENDING")
+            @ParameterObject @ModelAttribute OrderFilter filters,
+            @Parameter(
+                            description =
+                                    "Sort by field (orderId, userId, updatedAt, createdAt)",
+                            example = "updatedAt")
                     @RequestParam(required = false)
-                    OrderStatus status,
+                    String sortBy,
             @Parameter(description = "Zero-based page index", example = "0")
                     @RequestParam(defaultValue = "0")
                     int page,
@@ -100,13 +106,12 @@ public class OrderController {
             Authentication authentication) {
 
         User user = authenticationHelper.getAuthenticatedUser(authentication);
-        Pageable pageable = PageRequest.of(page, size);
 
         Page<Order> orders;
         if (user.getRole() == Role.ADMIN) {
-            orders = orderService.getAllOrders(status, pageable);
+            orders = orderService.getAllOrders(filters, page, size, sortBy);
         } else {
-            orders = orderService.getCustomerOrders(user, status, pageable);
+            orders = orderService.getCustomerOrders(user, filters, page, size, sortBy);
         }
         return ResponseEntity.ok(orders.map(orderMapper::toOrderResponse));
     }
