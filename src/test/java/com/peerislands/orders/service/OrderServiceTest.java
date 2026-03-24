@@ -20,13 +20,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest {
 
-    @Mock private OrderRepository orderRepository;
+    @Mock
+    private OrderRepository orderRepository;
 
-    @Mock private MockInventoryService inventoryService;
+    @Mock
+    private MockInventoryService inventoryService;
 
-    @Mock private MockPaymentService paymentService;
+    @Mock
+    private MockPaymentService paymentService;
 
-    @InjectMocks private OrderService orderService;
+    @InjectMocks
+    private OrderService orderService;
 
     @Test
     void createOrder_Success() {
