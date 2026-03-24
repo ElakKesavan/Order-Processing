@@ -92,7 +92,10 @@ public class OrderController {
             })
     public ResponseEntity<Page<OrderResponse>> getOrders(
             @ParameterObject @ModelAttribute OrderFilter filters,
-            @Parameter(description = "Sort by field (OrderId, customerId, updated at, created at)", example = "updatedAt")
+            @Parameter(
+                            description =
+                                    "Sort by field (orderId, userId, updatedAt, createdAt)",
+                            example = "updatedAt")
                     @RequestParam(required = false)
                     String sortBy,
             @Parameter(description = "Zero-based page index", example = "0")

@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class OrderService {
@@ -63,6 +64,7 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    @Transactional(readOnly = true)
     public Page<Order> getCustomerOrders(User user, OrderFilter filter, int page, int size, String sortBy) {
         Pageable pageable = createPageable(page, size, sortBy);
         OrderStatus status = (filter != null) ? filter.getStatus() : null;
@@ -72,6 +74,7 @@ public class OrderService {
         return orderRepository.findByUser(user, pageable);
     }
 
+    @Transactional(readOnly = true)
     public Page<Order> getAllOrders(OrderFilter filter, int page, int size, String sortBy) {
         Pageable pageable = createPageable(page, size, sortBy);
         OrderStatus status = (filter != null) ? filter.getStatus() : null;
@@ -83,12 +86,14 @@ public class OrderService {
 
     private Pageable createPageable(int page, int size, String sortBy) {
         Sort sort = Sort.unsorted();
-        if (sortBy != null) {
-            switch (sortBy.toLowerCase().replace(" ", "")) {
+        if (StringUtils.hasText(sortBy)) {
+            String sanitizedSort = sortBy.toLowerCase().replace(" ", "").replace("-", "").replace("_", "");
+            switch (sanitizedSort) {
                 case "orderid":
                     sort = Sort.by(Sort.Direction.ASC, "id");
                     break;
                 case "customerid":
+                case "userid":
                     sort = Sort.by(Sort.Direction.ASC, "user.id");
                     break;
                 case "createdat":
@@ -107,6 +112,7 @@ public class OrderService {
         return PageRequest.of(page, size, sort);
     }
 
+    @Transactional(readOnly = true)
     public Order getOrderById(Long orderId, User user) {
         Order order = orderRepository
                 .findById(orderId)
