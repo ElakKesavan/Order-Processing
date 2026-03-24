@@ -13,6 +13,12 @@ public class OrderResponse {
     @Schema(description = "Order ID", example = "101")
     private Long id;
 
+    @Schema(description = "User ID associated with the order", example = "1")
+    private Long userId;
+
+    @Schema(description = "User email associated with the order", example = "user@example.com")
+    private String userEmail;
+
     @Schema(description = "Current order status", example = "PENDING")
     private OrderStatus status;
 

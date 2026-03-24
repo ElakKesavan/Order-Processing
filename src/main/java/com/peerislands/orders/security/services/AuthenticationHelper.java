@@ -23,8 +23,7 @@ public class AuthenticationHelper {
         return userRepository
                 .findById(userDetails.getId())
                 .orElseThrow(
-                        () ->
-                                new IllegalStateException(
-                                        "Authenticated user not found in database."));
+                        () -> new IllegalStateException(
+                                "Authenticated user not found in database."));
     }
 }

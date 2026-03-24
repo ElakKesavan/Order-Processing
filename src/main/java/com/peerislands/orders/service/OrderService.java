@@ -14,11 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class OrderService {
 
-    @Autowired private OrderRepository orderRepository;
+    @Autowired
+    private OrderRepository orderRepository;
 
-    @Autowired private MockInventoryService inventoryService;
+    @Autowired
+    private MockInventoryService inventoryService;
 
-    @Autowired private MockPaymentService paymentService;
+    @Autowired
+    private MockPaymentService paymentService;
 
     @Transactional
     public Order createOrder(User user, OrderRequest request) {
@@ -28,9 +31,8 @@ public class OrderService {
         order.setStatus(OrderStatus.PENDING);
 
         for (OrderItemRequest itemReq : request.getItems()) {
-            MockInventoryService.InventoryStatus inventoryStatus =
-                    inventoryService.checkAndUpdateInventory(
-                            itemReq.getProductId(), itemReq.getQuantity());
+            MockInventoryService.InventoryStatus inventoryStatus = inventoryService.checkAndUpdateInventory(
+                    itemReq.getProductId(), itemReq.getQuantity());
 
             if (inventoryStatus != MockInventoryService.InventoryStatus.SUCCESS) {
                 throw new IllegalStateException(
@@ -40,13 +42,11 @@ public class OrderService {
                                 + itemReq.getProductId());
             }
 
-            BigDecimal itemTotal =
-                    itemReq.getPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
+            BigDecimal itemTotal = itemReq.getPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
             totalAmount = totalAmount.add(itemTotal);
 
-            OrderItem item =
-                    new OrderItem(
-                            itemReq.getProductId(), itemReq.getQuantity(), itemReq.getPrice());
+            OrderItem item = new OrderItem(
+                    itemReq.getProductId(), itemReq.getQuantity(), itemReq.getPrice());
             order.addItem(item);
         }
 
@@ -75,13 +75,11 @@ public class OrderService {
     }
 
     public Order getOrderById(Long orderId, User user) {
-        Order order =
-                orderRepository
-                        .findById(orderId)
-                        .orElseThrow(
-                                () ->
-                                        new java.util.NoSuchElementException(
-                                                "Order not found: " + orderId));
+        Order order = orderRepository
+                .findById(orderId)
+                .orElseThrow(
+                        () -> new java.util.NoSuchElementException(
+                                "Order not found: " + orderId));
 
         if (user.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(user.getId())) {
             throw new SecurityException("Unauthorized access to order.");
@@ -92,13 +90,11 @@ public class OrderService {
 
     @Transactional
     public void updateOrderStatus(Long orderId, OrderStatus newStatus, User actor) {
-        Order order =
-                orderRepository
-                        .findById(orderId)
-                        .orElseThrow(
-                                () ->
-                                        new java.util.NoSuchElementException(
-                                                "Order not found: " + orderId));
+        Order order = orderRepository
+                .findById(orderId)
+                .orElseThrow(
+                        () -> new java.util.NoSuchElementException(
+                                "Order not found: " + orderId));
 
         // 1. Authorization check
         if (actor.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(actor.getId())) {
