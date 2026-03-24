@@ -13,9 +13,13 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest {
@@ -178,5 +182,47 @@ public class OrderServiceTest {
         assertThrows(
                 java.util.NoSuchElementException.class,
                 () -> orderService.updateOrderStatus(999L, OrderStatus.SHIPPED, admin));
+    }
+    @Test
+    void getCustomerOrders_DefaultSorting() {
+        User user = new User("test@test.com", "hash", Role.CUSTOMER);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        orderService.getCustomerOrders(user, null, pageable);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(orderRepository).findByUser(eq(user), pageableCaptor.capture());
+
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertTrue(capturedPageable.getSort().isSorted());
+        assertEquals("updatedAt: DESC", capturedPageable.getSort().toString());
+    }
+
+    @Test
+    void getCustomerOrders_WithSorting_ShouldNotOverride() {
+        User user = new User("test@test.com", "hash", Role.CUSTOMER);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+
+        orderService.getCustomerOrders(user, null, pageable);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(orderRepository).findByUser(eq(user), pageableCaptor.capture());
+
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertEquals("id: ASC", capturedPageable.getSort().toString());
+    }
+
+    @Test
+    void getAllOrders_DefaultSorting() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        orderService.getAllOrders(null, pageable);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(orderRepository).findAll(pageableCaptor.capture());
+
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertTrue(capturedPageable.getSort().isSorted());
+        assertEquals("updatedAt: DESC", capturedPageable.getSort().toString());
     }
 }

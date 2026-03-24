@@ -7,7 +7,9 @@ import com.peerislands.orders.repository.OrderRepository;
 import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +63,7 @@ public class OrderService {
     }
 
     public Page<Order> getCustomerOrders(User user, OrderStatus status, Pageable pageable) {
+        pageable = applyDefaultSorting(pageable);
         if (status != null) {
             return orderRepository.findByUserAndStatus(user, status, pageable);
         }
@@ -68,10 +71,21 @@ public class OrderService {
     }
 
     public Page<Order> getAllOrders(OrderStatus status, Pageable pageable) {
+        pageable = applyDefaultSorting(pageable);
         if (status != null) {
             return orderRepository.findByStatus(status, pageable);
         }
         return orderRepository.findAll(pageable);
+    }
+
+    private Pageable applyDefaultSorting(Pageable pageable) {
+        if (pageable.getSort().isUnsorted()) {
+            return PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by(Sort.Direction.DESC, "updatedAt"));
+        }
+        return pageable;
     }
 
     public Order getOrderById(Long orderId, User user) {
