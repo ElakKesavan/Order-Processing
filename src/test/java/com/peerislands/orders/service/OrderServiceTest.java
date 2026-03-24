@@ -17,9 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest {
@@ -186,9 +184,8 @@ public class OrderServiceTest {
     @Test
     void getCustomerOrders_DefaultSorting() {
         User user = new User("test@test.com", "hash", Role.CUSTOMER);
-        Pageable pageable = PageRequest.of(0, 10);
 
-        orderService.getCustomerOrders(user, null, pageable);
+        orderService.getCustomerOrders(user, null, 0, 10, null);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         verify(orderRepository).findByUser(eq(user), pageableCaptor.capture());
@@ -201,9 +198,8 @@ public class OrderServiceTest {
     @Test
     void getCustomerOrders_WithSorting_ShouldNotOverride() {
         User user = new User("test@test.com", "hash", Role.CUSTOMER);
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
 
-        orderService.getCustomerOrders(user, null, pageable);
+        orderService.getCustomerOrders(user, null, 0, 10, "OrderId");
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         verify(orderRepository).findByUser(eq(user), pageableCaptor.capture());
@@ -214,9 +210,8 @@ public class OrderServiceTest {
 
     @Test
     void getAllOrders_DefaultSorting() {
-        Pageable pageable = PageRequest.of(0, 10);
 
-        orderService.getAllOrders(null, pageable);
+        orderService.getAllOrders(null, 0, 10, null);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         verify(orderRepository).findAll(pageableCaptor.capture());

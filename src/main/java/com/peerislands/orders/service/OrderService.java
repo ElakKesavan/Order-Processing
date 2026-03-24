@@ -1,6 +1,7 @@
 package com.peerislands.orders.service;
 
 import com.peerislands.orders.model.*;
+import com.peerislands.orders.payload.request.OrderFilter;
 import com.peerislands.orders.payload.request.OrderItemRequest;
 import com.peerislands.orders.payload.request.OrderRequest;
 import com.peerislands.orders.repository.OrderRepository;
@@ -62,30 +63,48 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public Page<Order> getCustomerOrders(User user, OrderStatus status, Pageable pageable) {
-        pageable = applyDefaultSorting(pageable);
+    public Page<Order> getCustomerOrders(User user, OrderFilter filter, int page, int size, String sortBy) {
+        Pageable pageable = createPageable(page, size, sortBy);
+        OrderStatus status = (filter != null) ? filter.getStatus() : null;
         if (status != null) {
             return orderRepository.findByUserAndStatus(user, status, pageable);
         }
         return orderRepository.findByUser(user, pageable);
     }
 
-    public Page<Order> getAllOrders(OrderStatus status, Pageable pageable) {
-        pageable = applyDefaultSorting(pageable);
+    public Page<Order> getAllOrders(OrderFilter filter, int page, int size, String sortBy) {
+        Pageable pageable = createPageable(page, size, sortBy);
+        OrderStatus status = (filter != null) ? filter.getStatus() : null;
         if (status != null) {
             return orderRepository.findByStatus(status, pageable);
         }
         return orderRepository.findAll(pageable);
     }
 
-    private Pageable applyDefaultSorting(Pageable pageable) {
-        if (pageable.getSort().isUnsorted()) {
-            return PageRequest.of(
-                    pageable.getPageNumber(),
-                    pageable.getPageSize(),
-                    Sort.by(Sort.Direction.DESC, "updatedAt"));
+    private Pageable createPageable(int page, int size, String sortBy) {
+        Sort sort = Sort.unsorted();
+        if (sortBy != null) {
+            switch (sortBy.toLowerCase().replace(" ", "")) {
+                case "orderid":
+                    sort = Sort.by(Sort.Direction.ASC, "id");
+                    break;
+                case "customerid":
+                    sort = Sort.by(Sort.Direction.ASC, "user.id");
+                    break;
+                case "createdat":
+                    sort = Sort.by(Sort.Direction.DESC, "createdAt");
+                    break;
+                case "updatedat":
+                    sort = Sort.by(Sort.Direction.DESC, "updatedAt");
+                    break;
+            }
         }
-        return pageable;
+
+        if (sort.isUnsorted()) {
+            sort = Sort.by(Sort.Direction.DESC, "updatedAt");
+        }
+
+        return PageRequest.of(page, size, sort);
     }
 
     public Order getOrderById(Long orderId, User user) {
