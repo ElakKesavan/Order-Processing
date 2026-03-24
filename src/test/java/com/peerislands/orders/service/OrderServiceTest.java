@@ -111,7 +111,9 @@ public class OrderServiceTest {
 
         when(orderRepository.findById(10L)).thenReturn(Optional.of(order));
 
-        assertThrows(SecurityException.class, () -> orderService.updateOrderStatus(10L, OrderStatus.CANCELLED, otherUser));
+        assertThrows(
+                SecurityException.class,
+                () -> orderService.updateOrderStatus(10L, OrderStatus.CANCELLED, otherUser));
     }
 
     @Test
@@ -126,7 +128,9 @@ public class OrderServiceTest {
 
         when(orderRepository.findById(10L)).thenReturn(Optional.of(order));
 
-        assertThrows(IllegalStateException.class, () -> orderService.updateOrderStatus(10L, OrderStatus.CANCELLED, user));
+        assertThrows(
+                IllegalStateException.class,
+                () -> orderService.updateOrderStatus(10L, OrderStatus.CANCELLED, user));
     }
 
     @Test
@@ -157,15 +161,18 @@ public class OrderServiceTest {
 
         when(orderRepository.findById(10L)).thenReturn(Optional.of(order));
 
-        assertThrows(IllegalStateException.class, () -> 
-            orderService.updateOrderStatus(10L, OrderStatus.SHIPPED, admin));
+        assertThrows(
+                IllegalStateException.class,
+                () -> orderService.updateOrderStatus(10L, OrderStatus.SHIPPED, admin));
     }
+
     @Test
     void updateOrderStatus_OrderNotFound() {
         User admin = new User("admin@test.com", "hash", Role.ADMIN);
         when(orderRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(java.util.NoSuchElementException.class, () -> 
-            orderService.updateOrderStatus(999L, OrderStatus.SHIPPED, admin));
+        assertThrows(
+                java.util.NoSuchElementException.class,
+                () -> orderService.updateOrderStatus(999L, OrderStatus.SHIPPED, admin));
     }
 }

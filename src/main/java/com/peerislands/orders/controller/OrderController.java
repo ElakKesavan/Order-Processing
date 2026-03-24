@@ -1,7 +1,6 @@
 package com.peerislands.orders.controller;
 
 import com.peerislands.orders.mapper.OrderMapper;
-import java.util.NoSuchElementException;
 import com.peerislands.orders.model.Order;
 import com.peerislands.orders.model.OrderStatus;
 import com.peerislands.orders.model.Role;
@@ -12,7 +11,15 @@ import com.peerislands.orders.payload.response.MessageResponse;
 import com.peerislands.orders.payload.response.OrderResponse;
 import com.peerislands.orders.security.services.AuthenticationHelper;
 import com.peerislands.orders.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,19 +31,40 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/orders")
+@Tag(name = "Orders", description = "Order lifecycle management endpoints")
 public class OrderController {
 
-    @Autowired
-    private OrderService orderService;
+    @Autowired private OrderService orderService;
 
-    @Autowired
-    private OrderMapper orderMapper;
+    @Autowired private OrderMapper orderMapper;
 
-    @Autowired
-    private AuthenticationHelper authenticationHelper;
+    @Autowired private AuthenticationHelper authenticationHelper;
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
+    @Operation(
+            summary = "Create a new order",
+            description =
+                    "Places a new order with the given items. Only accessible by CUSTOMER role.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "Order created successfully",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = OrderResponse.class))),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Validation or business rule error",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = MessageResponse.class))),
+                @ApiResponse(responseCode = "401", description = "Missing or invalid JWT token"),
+                @ApiResponse(responseCode = "403", description = "User does not have CUSTOMER role")
+            })
     public ResponseEntity<?> createOrder(
             @Valid @RequestBody OrderRequest orderRequest, Authentication authentication) {
         try {
@@ -49,10 +77,26 @@ public class OrderController {
     }
 
     @GetMapping
+    @Operation(
+            summary = "List orders (paginated)",
+            description =
+                    "Returns paginated orders. ADMINs see all orders; CUSTOMERs see only their"
+                            + " own. Optionally filter by status.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "Page of orders returned successfully")
+            })
     public ResponseEntity<Page<OrderResponse>> getOrders(
-            @RequestParam(required = false) OrderStatus status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Filter by order status", example = "PENDING")
+                    @RequestParam(required = false)
+                    OrderStatus status,
+            @Parameter(description = "Zero-based page index", example = "0")
+                    @RequestParam(defaultValue = "0")
+                    int page,
+            @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20")
+                    int size,
             Authentication authentication) {
 
         User user = authenticationHelper.getAuthenticatedUser(authentication);
@@ -68,7 +112,32 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getOrderById(@PathVariable Long id, Authentication authentication) {
+    @Operation(
+            summary = "Get order by ID",
+            description =
+                    "Retrieves a single order. CUSTOMERs can only view their own orders; ADMINs"
+                            + " can view any.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "Order found",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = OrderResponse.class))),
+                @ApiResponse(
+                        responseCode = "403",
+                        description = "Not authorized to view this order",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = MessageResponse.class))),
+                @ApiResponse(responseCode = "404", description = "Order not found")
+            })
+    public ResponseEntity<?> getOrderById(
+            @Parameter(description = "Order ID", example = "101") @PathVariable Long id,
+            Authentication authentication) {
         try {
             User user = authenticationHelper.getAuthenticatedUser(authentication);
             Order order = orderService.getOrderById(id, user);
@@ -81,14 +150,52 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}")
+    @Operation(
+            summary = "Update order status",
+            description =
+                    "Transitions an order to a new status. Role-based rules apply for allowed"
+                            + " transitions.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "Status updated successfully",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = MessageResponse.class))),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Invalid request (e.g. invalid enum value)",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = MessageResponse.class))),
+                @ApiResponse(
+                        responseCode = "403",
+                        description = "Not authorized for this status transition",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = MessageResponse.class))),
+                @ApiResponse(responseCode = "404", description = "Order not found"),
+                @ApiResponse(
+                        responseCode = "409",
+                        description = "Invalid state transition",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = MessageResponse.class)))
+            })
     public ResponseEntity<?> updateOrderStatus(
-            @PathVariable Long id,
+            @Parameter(description = "Order ID", example = "101") @PathVariable Long id,
             @Valid @RequestBody UpdateOrderStatusRequest request,
             Authentication authentication) {
         try {
             User user = authenticationHelper.getAuthenticatedUser(authentication);
             orderService.updateOrderStatus(id, request.getStatus(), user);
-            return ResponseEntity.ok(new MessageResponse("Order status updated to " + request.getStatus()));
+            return ResponseEntity.ok(
+                    new MessageResponse("Order status updated to " + request.getStatus()));
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(new MessageResponse(e.getMessage()));
         } catch (NoSuchElementException e) {

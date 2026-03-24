@@ -32,3 +32,11 @@ Then start the internal boot engine:
 ```bash
 ./mvnw spring-boot:run
 ```
+
+## API Documentation
+
+Interactive API documentation is available at:
+
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI Spec**: http://localhost:8080/v3/api-docs
+

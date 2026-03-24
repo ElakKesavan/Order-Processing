@@ -3,9 +3,9 @@ package com.peerislands.orders.security.services;
 import com.peerislands.orders.model.User;
 import com.peerislands.orders.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import org.springframework.cache.annotation.Cacheable;
 
 @Component
 public class AuthenticationHelper {
@@ -23,7 +23,8 @@ public class AuthenticationHelper {
         return userRepository
                 .findById(userDetails.getId())
                 .orElseThrow(
-                        () -> new IllegalStateException(
-                                "Authenticated user not found in database."));
+                        () ->
+                                new IllegalStateException(
+                                        "Authenticated user not found in database."));
     }
 }
