@@ -79,7 +79,9 @@ public class OrderService {
                 orderRepository
                         .findById(orderId)
                         .orElseThrow(
-                                () -> new java.util.NoSuchElementException("Order not found: " + orderId));
+                                () ->
+                                        new java.util.NoSuchElementException(
+                                                "Order not found: " + orderId));
 
         if (user.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(user.getId())) {
             throw new SecurityException("Unauthorized access to order.");
@@ -90,8 +92,13 @@ public class OrderService {
 
     @Transactional
     public void updateOrderStatus(Long orderId, OrderStatus newStatus, User actor) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new java.util.NoSuchElementException("Order not found: " + orderId));
+        Order order =
+                orderRepository
+                        .findById(orderId)
+                        .orElseThrow(
+                                () ->
+                                        new java.util.NoSuchElementException(
+                                                "Order not found: " + orderId));
 
         // 1. Authorization check
         if (actor.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(actor.getId())) {
@@ -101,10 +108,12 @@ public class OrderService {
         // 2. Role-specific constraints
         if (actor.getRole() == Role.CUSTOMER) {
             if (newStatus != OrderStatus.CANCELLED) {
-                throw new IllegalArgumentException("Customers can only update status to CANCELLED.");
+                throw new IllegalArgumentException(
+                        "Customers can only update status to CANCELLED.");
             }
             if (order.getStatus() != OrderStatus.PENDING) {
-                throw new IllegalStateException("Orders can only be cancelled while in PENDING status.");
+                throw new IllegalStateException(
+                        "Orders can only be cancelled while in PENDING status.");
             }
         } else if (actor.getRole() == Role.ADMIN) {
             // Admin specific rules

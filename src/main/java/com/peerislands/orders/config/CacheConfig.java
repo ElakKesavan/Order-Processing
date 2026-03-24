@@ -14,8 +14,7 @@ public class CacheConfig {
 
     @Bean
     public Caffeine<Object, Object> caffeineConfig() {
-        return Caffeine.newBuilder()
-                .expireAfterWrite(1, TimeUnit.MINUTES);
+        return Caffeine.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES);
     }
 
     @Bean

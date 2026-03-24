@@ -18,17 +18,13 @@ import org.springframework.security.core.Authentication;
 @ExtendWith(MockitoExtension.class)
 public class AuthenticationHelperTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private Authentication authentication;
+    @Mock private Authentication authentication;
 
-    @Mock
-    private UserDetailsImpl userDetails;
+    @Mock private UserDetailsImpl userDetails;
 
-    @InjectMocks
-    private AuthenticationHelper authenticationHelper;
+    @InjectMocks private AuthenticationHelper authenticationHelper;
 
     private User user;
 
@@ -56,8 +52,10 @@ public class AuthenticationHelperTest {
         when(userDetails.getId()).thenReturn(1L);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalStateException.class, () -> {
-            authenticationHelper.getAuthenticatedUser(authentication);
-        });
+        assertThrows(
+                IllegalStateException.class,
+                () -> {
+                    authenticationHelper.getAuthenticatedUser(authentication);
+                });
     }
 }

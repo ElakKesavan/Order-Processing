@@ -18,17 +18,13 @@ import org.springframework.security.core.Authentication;
 @SpringBootTest
 public class AuthenticationHelperCacheTest {
 
-    @Autowired
-    private AuthenticationHelper authenticationHelper;
+    @Autowired private AuthenticationHelper authenticationHelper;
 
-    @Autowired
-    private CacheManager cacheManager;
+    @Autowired private CacheManager cacheManager;
 
-    @MockBean
-    private UserRepository userRepository;
+    @MockBean private UserRepository userRepository;
 
-    @MockBean
-    private Authentication authentication;
+    @MockBean private Authentication authentication;
 
     private User user;
     private UserDetailsImpl userDetails;
@@ -45,7 +41,7 @@ public class AuthenticationHelperCacheTest {
 
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        
+
         org.springframework.cache.Cache cache = cacheManager.getCache("users");
         if (cache != null) {
             cache.clear();

@@ -3,10 +3,9 @@ package com.peerislands.orders.model;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.Objects;
-
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "order_items")
