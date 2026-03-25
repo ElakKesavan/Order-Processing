@@ -100,7 +100,14 @@ public class OrderController {
             value = {
                 @ApiResponse(
                         responseCode = "200",
-                        description = "Page of orders returned successfully")
+                        description = "Page of orders returned successfully"),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "Internal server error",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ProblemDetail.class)))
             })
     public ResponseEntity<Page<OrderResponse>> getOrders(
             @ParameterObject @ModelAttribute OrderFilter filters,
