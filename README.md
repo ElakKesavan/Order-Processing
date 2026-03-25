@@ -24,14 +24,17 @@ A robust Spring Boot backend serving as the central engine for an E-commerce Ord
 ## Running the Application
 Ensure PostgreSQL is running locally, and adjust database configurations in `application.yml` accordingly.
 
-Run the build explicitly resolving Maven plugins and tests:
+### Pre-flight Check
+To run a full check including formatting (Spotless), static analysis (Checkstyle), and unit tests:
 ```bash
-./mvnw clean install
+./mvnw clean verify
 ```
-Then start the internal boot engine:
+
+### Start the Service
 ```bash
 ./mvnw spring-boot:run
 ```
+
 
 ## API Documentation
 

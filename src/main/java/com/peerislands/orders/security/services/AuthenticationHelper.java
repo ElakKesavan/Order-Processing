@@ -12,7 +12,7 @@ public class AuthenticationHelper {
 
     private final UserRepository userRepository;
 
-    private static final ThreadLocal<User> currentUser = new ThreadLocal<>();
+    private final ThreadLocal<User> currentUser = new ThreadLocal<>();
 
     @Autowired
     public AuthenticationHelper(UserRepository userRepository) {
