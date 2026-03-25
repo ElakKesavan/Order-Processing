@@ -22,6 +22,7 @@ import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,9 +67,21 @@ public class OrderController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = MessageResponse.class))),
-                @ApiResponse(responseCode = "401", description = "Missing or invalid JWT token"),
-                @ApiResponse(responseCode = "403", description = "User does not have CUSTOMER role")
+                                        schema = @Schema(implementation = ProblemDetail.class))),
+                @ApiResponse(
+                        responseCode = "401",
+                        description = "Missing or invalid JWT token",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ProblemDetail.class))),
+                @ApiResponse(
+                        responseCode = "403",
+                        description = "User does not have CUSTOMER role",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ProblemDetail.class)))
             })
     public ResponseEntity<OrderResponse> createOrder(
             @Valid @RequestBody OrderRequest orderRequest) {
@@ -134,8 +147,14 @@ public class OrderController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = MessageResponse.class))),
-                @ApiResponse(responseCode = "404", description = "Order not found")
+                                        schema = @Schema(implementation = ProblemDetail.class))),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "Order not found",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ProblemDetail.class)))
             })
     public ResponseEntity<OrderResponse> getOrderById(
             @Parameter(description = "Order ID", example = "101") @PathVariable Long id) {
@@ -165,22 +184,28 @@ public class OrderController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = MessageResponse.class))),
+                                        schema = @Schema(implementation = ProblemDetail.class))),
                 @ApiResponse(
                         responseCode = "403",
                         description = "Not authorized for this status transition",
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = MessageResponse.class))),
-                @ApiResponse(responseCode = "404", description = "Order not found"),
+                                        schema = @Schema(implementation = ProblemDetail.class))),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "Order not found",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ProblemDetail.class))),
                 @ApiResponse(
                         responseCode = "409",
                         description = "Invalid state transition",
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = MessageResponse.class)))
+                                        schema = @Schema(implementation = ProblemDetail.class)))
             })
     public ResponseEntity<MessageResponse> updateOrderStatus(
             @Parameter(description = "Order ID", example = "101") @PathVariable Long id,
