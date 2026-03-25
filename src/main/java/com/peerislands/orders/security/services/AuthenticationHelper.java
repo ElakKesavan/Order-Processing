@@ -12,9 +12,34 @@ public class AuthenticationHelper {
 
     private final UserRepository userRepository;
 
+    private static final ThreadLocal<User> currentUser = new ThreadLocal<>();
+
     @Autowired
     public AuthenticationHelper(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    public void setCurrentUser(User user) {
+        currentUser.set(user);
+    }
+
+    public User getCurrentUser() {
+        User user = currentUser.get();
+        if (user == null) {
+            throw new IllegalStateException("No authenticated user found in current thread context.");
+        }
+        return user;
+    }
+
+    public void clear() {
+        currentUser.remove();
+    }
+
+    public void populateUserContext(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl) {
+            User user = getAuthenticatedUser(authentication);
+            setCurrentUser(user);
+        }
     }
 
     @Cacheable(value = "users", key = "#authentication.principal.id")

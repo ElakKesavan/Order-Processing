@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -67,10 +66,9 @@ public class OrderController {
                 @ApiResponse(responseCode = "401", description = "Missing or invalid JWT token"),
                 @ApiResponse(responseCode = "403", description = "User does not have CUSTOMER role")
             })
-    public ResponseEntity<?> createOrder(
-            @Valid @RequestBody OrderRequest orderRequest, Authentication authentication) {
+    public ResponseEntity<?> createOrder(@Valid @RequestBody OrderRequest orderRequest) {
         try {
-            User user = authenticationHelper.getAuthenticatedUser(authentication);
+            User user = authenticationHelper.getCurrentUser();
             Order createdOrder = orderService.createOrder(user, orderRequest);
             return ResponseEntity.ok(orderMapper.toOrderResponse(createdOrder));
         } catch (IllegalStateException e) {
@@ -102,10 +100,9 @@ public class OrderController {
                     @RequestParam(defaultValue = "0")
                     int page,
             @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20")
-                    int size,
-            Authentication authentication) {
+                    int size) {
 
-        User user = authenticationHelper.getAuthenticatedUser(authentication);
+        User user = authenticationHelper.getCurrentUser();
 
         Page<Order> orders;
         if (user.getRole() == Role.ADMIN) {
@@ -141,10 +138,9 @@ public class OrderController {
                 @ApiResponse(responseCode = "404", description = "Order not found")
             })
     public ResponseEntity<?> getOrderById(
-            @Parameter(description = "Order ID", example = "101") @PathVariable Long id,
-            Authentication authentication) {
+            @Parameter(description = "Order ID", example = "101") @PathVariable Long id) {
         try {
-            User user = authenticationHelper.getAuthenticatedUser(authentication);
+            User user = authenticationHelper.getCurrentUser();
             Order order = orderService.getOrderById(id, user);
             return ResponseEntity.ok(orderMapper.toOrderResponse(order));
         } catch (SecurityException e) {
@@ -194,10 +190,9 @@ public class OrderController {
             })
     public ResponseEntity<?> updateOrderStatus(
             @Parameter(description = "Order ID", example = "101") @PathVariable Long id,
-            @Valid @RequestBody UpdateOrderStatusRequest request,
-            Authentication authentication) {
+            @Valid @RequestBody UpdateOrderStatusRequest request) {
         try {
-            User user = authenticationHelper.getAuthenticatedUser(authentication);
+            User user = authenticationHelper.getCurrentUser();
             orderService.updateOrderStatus(id, request.getStatus(), user);
             return ResponseEntity.ok(
                     new MessageResponse("Order status updated to " + request.getStatus()));
