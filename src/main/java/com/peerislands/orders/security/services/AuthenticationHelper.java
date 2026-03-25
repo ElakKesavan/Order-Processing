@@ -35,6 +35,13 @@ public class AuthenticationHelper {
         currentUser.remove();
     }
 
+    public void populateUserContext(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl) {
+            User user = getAuthenticatedUser(authentication);
+            setCurrentUser(user);
+        }
+    }
+
     @Cacheable(value = "users", key = "#authentication.principal.id")
     public User getAuthenticatedUser(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();

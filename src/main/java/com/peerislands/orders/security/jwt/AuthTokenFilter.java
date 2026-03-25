@@ -1,6 +1,5 @@
 package com.peerislands.orders.security.jwt;
 
-import com.peerislands.orders.model.User;
 import com.peerislands.orders.security.services.AuthenticationHelper;
 import com.peerislands.orders.security.services.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
@@ -41,29 +40,24 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            String jwt = parseJwt(request);
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-                String username = jwtUtils.getUserNameFromJwtToken(jwt);
+            try {
+                String jwt = parseJwt(request);
+                if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+                    String username = jwtUtils.getUserNameFromJwtToken(jwt);
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request));
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                // Set user in thread context
-                try {
-                    User user = authenticationHelper.getAuthenticatedUser(authentication);
-                    authenticationHelper.setCurrentUser(user);
-                } catch (Exception e) {
-                    logger.error("Could not set user in context: {}", e.getMessage());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    authenticationHelper.populateUserContext(authentication);
                 }
+            } catch (Exception e) {
+                logger.error("Cannot set user authentication: {}", e.getMessage());
             }
-            filterChain.doFilter(request, response);
-        } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}", e.getMessage());
+
             filterChain.doFilter(request, response);
         } finally {
             authenticationHelper.clear();
