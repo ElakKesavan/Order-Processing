@@ -12,7 +12,7 @@ public class AuthenticationHelper {
 
     private final UserRepository userRepository;
 
-    private static final ThreadLocal<User> currentUser = new ThreadLocal<>();
+    private final ThreadLocal<User> currentUser = new ThreadLocal<>();
 
     @Autowired
     public AuthenticationHelper(UserRepository userRepository) {
@@ -26,7 +26,8 @@ public class AuthenticationHelper {
     public User getCurrentUser() {
         User user = currentUser.get();
         if (user == null) {
-            throw new IllegalStateException("No authenticated user found in current thread context.");
+            throw new IllegalStateException(
+                    "No authenticated user found in current thread context.");
         }
         return user;
     }
@@ -48,7 +49,8 @@ public class AuthenticationHelper {
         return userRepository
                 .findById(userDetails.getId())
                 .orElseThrow(
-                        () -> new IllegalStateException(
-                                "Authenticated user not found in database."));
+                        () ->
+                                new IllegalStateException(
+                                        "Authenticated user not found in database."));
     }
 }

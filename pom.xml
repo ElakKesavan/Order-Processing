@@ -167,7 +167,14 @@
             <removeUnusedImports/>
           </java>
         </configuration>
-        <!-- Not binding to compile phase here to avoid issues when just checking code during dev, run explicitly via mvn spotless:check -->
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
       </plugin>
       <!-- Checkstyle Plugin -->
       <plugin>
@@ -187,6 +194,14 @@
           <failsOnError>true</failsOnError>
           <linkXRef>false</linkXRef>
         </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
       </plugin>
       <!-- JaCoCo Plugin -->
       <plugin>
