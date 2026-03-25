@@ -1,5 +1,7 @@
 package com.peerislands.orders.security.jwt;
 
+import com.peerislands.orders.model.User;
+import com.peerislands.orders.security.services.AuthenticationHelper;
 import com.peerislands.orders.security.services.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,6 +24,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    private AuthenticationHelper authenticationHelper;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
@@ -47,12 +52,22 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                         new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                // Set user in thread context
+                try {
+                    User user = authenticationHelper.getAuthenticatedUser(authentication);
+                    authenticationHelper.setCurrentUser(user);
+                } catch (Exception e) {
+                    logger.error("Could not set user in context: {}", e.getMessage());
+                }
             }
+            filterChain.doFilter(request, response);
         } catch (Exception e) {
             logger.error("Cannot set user authentication: {}", e.getMessage());
+            filterChain.doFilter(request, response);
+        } finally {
+            authenticationHelper.clear();
         }
-
-        filterChain.doFilter(request, response);
     }
 
     private String parseJwt(HttpServletRequest request) {

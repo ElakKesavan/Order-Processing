@@ -58,4 +58,20 @@ public class AuthenticationHelperTest {
                     authenticationHelper.getAuthenticatedUser(authentication);
                 });
     }
+
+    @Test
+    void testThreadLocalUserContext() {
+        authenticationHelper.setCurrentUser(user);
+        User result = authenticationHelper.getCurrentUser();
+        assertEquals(user, result);
+
+        authenticationHelper.clear();
+        assertThrows(IllegalStateException.class, () -> authenticationHelper.getCurrentUser());
+    }
+
+    @Test
+    void getCurrentUser_WhenNotSet_ThrowsException() {
+        authenticationHelper.clear();
+        assertThrows(IllegalStateException.class, () -> authenticationHelper.getCurrentUser());
+    }
 }
