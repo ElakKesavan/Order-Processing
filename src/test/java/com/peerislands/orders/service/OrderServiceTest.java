@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.peerislands.orders.exception.*;
 import com.peerislands.orders.model.*;
 import com.peerislands.orders.payload.request.OrderItemRequest;
 import com.peerislands.orders.payload.request.OrderRequest;
@@ -74,7 +75,8 @@ public class OrderServiceTest {
         when(inventoryService.checkAndUpdateInventory("PROD1", 2))
                 .thenReturn(MockInventoryService.InventoryStatus.INSUFFICIENT_STOCK);
 
-        assertThrows(IllegalStateException.class, () -> orderService.createOrder(user, request));
+        assertThrows(
+                InventoryUnavailableException.class, () -> orderService.createOrder(user, request));
 
         verify(paymentService, never()).processPayment(any(), any());
         verify(orderRepository, never()).save(any());
@@ -114,7 +116,7 @@ public class OrderServiceTest {
         when(orderRepository.findById(10L)).thenReturn(Optional.of(order));
 
         assertThrows(
-                SecurityException.class,
+                UnauthorizedOrderAccessException.class,
                 () -> orderService.updateOrderStatus(10L, OrderStatus.CANCELLED, otherUser));
     }
 
@@ -131,7 +133,7 @@ public class OrderServiceTest {
         when(orderRepository.findById(10L)).thenReturn(Optional.of(order));
 
         assertThrows(
-                IllegalStateException.class,
+                InvalidOrderStatusTransitionException.class,
                 () -> orderService.updateOrderStatus(10L, OrderStatus.CANCELLED, user));
     }
 
@@ -164,7 +166,7 @@ public class OrderServiceTest {
         when(orderRepository.findById(10L)).thenReturn(Optional.of(order));
 
         assertThrows(
-                IllegalStateException.class,
+                InvalidOrderStatusTransitionException.class,
                 () -> orderService.updateOrderStatus(10L, OrderStatus.SHIPPED, admin));
     }
 
@@ -174,7 +176,7 @@ public class OrderServiceTest {
         when(orderRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(
-                java.util.NoSuchElementException.class,
+                OrderNotFoundException.class,
                 () -> orderService.updateOrderStatus(999L, OrderStatus.SHIPPED, admin));
     }
 
