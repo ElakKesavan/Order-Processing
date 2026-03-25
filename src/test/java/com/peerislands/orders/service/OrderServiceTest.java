@@ -1,11 +1,23 @@
 package com.peerislands.orders.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.peerislands.orders.exception.*;
-import com.peerislands.orders.model.*;
+import com.peerislands.orders.exception.InvalidOrderStatusTransitionException;
+import com.peerislands.orders.exception.InventoryUnavailableException;
+import com.peerislands.orders.exception.OrderNotFoundException;
+import com.peerislands.orders.exception.UnauthorizedOrderAccessException;
+import com.peerislands.orders.model.Order;
+import com.peerislands.orders.model.OrderStatus;
+import com.peerislands.orders.model.Role;
+import com.peerislands.orders.model.User;
 import com.peerislands.orders.payload.request.OrderItemRequest;
 import com.peerislands.orders.payload.request.OrderRequest;
 import com.peerislands.orders.repository.OrderRepository;
@@ -21,6 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 public class OrderServiceTest {
 
     @Mock private OrderRepository orderRepository;
