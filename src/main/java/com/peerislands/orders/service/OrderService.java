@@ -18,14 +18,11 @@ import org.springframework.util.StringUtils;
 @Service
 public class OrderService {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    @Autowired private OrderRepository orderRepository;
 
-    @Autowired
-    private MockInventoryService inventoryService;
+    @Autowired private MockInventoryService inventoryService;
 
-    @Autowired
-    private MockPaymentService paymentService;
+    @Autowired private MockPaymentService paymentService;
 
     @Transactional
     public Order createOrder(User user, OrderRequest request) {
@@ -35,8 +32,9 @@ public class OrderService {
         order.setStatus(OrderStatus.PENDING);
 
         for (OrderItemRequest itemReq : request.getItems()) {
-            MockInventoryService.InventoryStatus inventoryStatus = inventoryService.checkAndUpdateInventory(
-                    itemReq.getProductId(), itemReq.getQuantity());
+            MockInventoryService.InventoryStatus inventoryStatus =
+                    inventoryService.checkAndUpdateInventory(
+                            itemReq.getProductId(), itemReq.getQuantity());
 
             if (inventoryStatus != MockInventoryService.InventoryStatus.SUCCESS) {
                 throw new IllegalStateException(
@@ -46,11 +44,13 @@ public class OrderService {
                                 + itemReq.getProductId());
             }
 
-            BigDecimal itemTotal = itemReq.getPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
+            BigDecimal itemTotal =
+                    itemReq.getPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
             totalAmount = totalAmount.add(itemTotal);
 
-            OrderItem item = new OrderItem(
-                    itemReq.getProductId(), itemReq.getQuantity(), itemReq.getPrice());
+            OrderItem item =
+                    new OrderItem(
+                            itemReq.getProductId(), itemReq.getQuantity(), itemReq.getPrice());
             order.addItem(item);
         }
 
@@ -65,7 +65,8 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Order> getCustomerOrders(User user, OrderFilter filter, int page, int size, String sortBy) {
+    public Page<Order> getCustomerOrders(
+            User user, OrderFilter filter, int page, int size, String sortBy) {
         Pageable pageable = createPageable(page, size, sortBy);
         OrderStatus status = (filter != null) ? filter.getStatus() : null;
         if (status != null) {
@@ -87,7 +88,8 @@ public class OrderService {
     private Pageable createPageable(int page, int size, String sortBy) {
         Sort sort = Sort.unsorted();
         if (StringUtils.hasText(sortBy)) {
-            String sanitizedSort = sortBy.toLowerCase().replace(" ", "").replace("-", "").replace("_", "");
+            String sanitizedSort =
+                    sortBy.toLowerCase().replace(" ", "").replace("-", "").replace("_", "");
             switch (sanitizedSort) {
                 case "orderid":
                     sort = Sort.by(Sort.Direction.ASC, "id");
@@ -114,11 +116,13 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public Order getOrderById(Long orderId, User user) {
-        Order order = orderRepository
-                .findById(orderId)
-                .orElseThrow(
-                        () -> new java.util.NoSuchElementException(
-                                "Order not found: " + orderId));
+        Order order =
+                orderRepository
+                        .findById(orderId)
+                        .orElseThrow(
+                                () ->
+                                        new java.util.NoSuchElementException(
+                                                "Order not found: " + orderId));
 
         if (user.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(user.getId())) {
             throw new SecurityException("Unauthorized access to order.");
@@ -129,11 +133,13 @@ public class OrderService {
 
     @Transactional
     public void updateOrderStatus(Long orderId, OrderStatus newStatus, User actor) {
-        Order order = orderRepository
-                .findById(orderId)
-                .orElseThrow(
-                        () -> new java.util.NoSuchElementException(
-                                "Order not found: " + orderId));
+        Order order =
+                orderRepository
+                        .findById(orderId)
+                        .orElseThrow(
+                                () ->
+                                        new java.util.NoSuchElementException(
+                                                "Order not found: " + orderId));
 
         // 1. Authorization check
         if (actor.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(actor.getId())) {

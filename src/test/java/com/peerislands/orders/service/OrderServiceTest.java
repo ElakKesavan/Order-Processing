@@ -22,17 +22,13 @@ import org.springframework.data.domain.Pageable;
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest {
 
-    @Mock
-    private OrderRepository orderRepository;
+    @Mock private OrderRepository orderRepository;
 
-    @Mock
-    private MockInventoryService inventoryService;
+    @Mock private MockInventoryService inventoryService;
 
-    @Mock
-    private MockPaymentService paymentService;
+    @Mock private MockPaymentService paymentService;
 
-    @InjectMocks
-    private OrderService orderService;
+    @InjectMocks private OrderService orderService;
 
     @Test
     void createOrder_Success() {
@@ -181,6 +177,7 @@ public class OrderServiceTest {
                 java.util.NoSuchElementException.class,
                 () -> orderService.updateOrderStatus(999L, OrderStatus.SHIPPED, admin));
     }
+
     @Test
     void getCustomerOrders_DefaultSorting() {
         User user = new User("test@test.com", "hash", Role.CUSTOMER);

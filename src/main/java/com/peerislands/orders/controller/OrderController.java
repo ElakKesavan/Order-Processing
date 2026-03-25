@@ -19,8 +19,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springdoc.core.annotations.ParameterObject;
 import java.util.NoSuchElementException;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -32,14 +32,11 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Orders", description = "Order lifecycle management endpoints")
 public class OrderController {
 
-    @Autowired
-    private OrderService orderService;
+    @Autowired private OrderService orderService;
 
-    @Autowired
-    private OrderMapper orderMapper;
+    @Autowired private OrderMapper orderMapper;
 
-    @Autowired
-    private AuthenticationHelper authenticationHelper;
+    @Autowired private AuthenticationHelper authenticationHelper;
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -91,8 +88,7 @@ public class OrderController {
     public ResponseEntity<Page<OrderResponse>> getOrders(
             @ParameterObject @ModelAttribute OrderFilter filters,
             @Parameter(
-                            description =
-                                    "Sort by field (orderId, userId, updatedAt, createdAt)",
+                            description = "Sort by field (orderId, userId, updatedAt, createdAt)",
                             example = "updatedAt")
                     @RequestParam(required = false)
                     String sortBy,
