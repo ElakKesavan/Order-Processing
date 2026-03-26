@@ -1,5 +1,6 @@
 package com.peerislands.orders.service;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ public class MockInventoryService {
         SERVICE_UNAVAILABLE
     }
 
+    @CircuitBreaker(name = "inventoryService", fallbackMethod = "fallbackCheckAndUpdateInventory")
     public InventoryStatus checkAndUpdateInventory(String productId, int quantity) {
         logger.info("MockInventoryService: Reserving {} units of product {}", quantity, productId);
 
@@ -28,7 +30,12 @@ public class MockInventoryService {
         } else if (roll < 95) {
             return InventoryStatus.INSUFFICIENT_STOCK;
         } else {
-            return InventoryStatus.SERVICE_UNAVAILABLE;
+            throw new RuntimeException("Mock Inventory Service Unavailable");
         }
+    }
+
+    public InventoryStatus fallbackCheckAndUpdateInventory(String productId, int quantity, Throwable t) {
+        logger.error("MockInventoryService fallback triggered for product {} due to: {}", productId, t);
+        return InventoryStatus.SERVICE_UNAVAILABLE;
     }
 }
