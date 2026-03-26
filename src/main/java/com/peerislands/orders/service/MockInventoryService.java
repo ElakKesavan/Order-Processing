@@ -35,7 +35,7 @@ public class MockInventoryService {
     }
 
     public InventoryStatus fallbackCheckAndUpdateInventory(String productId, int quantity, Throwable t) {
-        logger.error("MockInventoryService fallback triggered for product {} due to: {}", productId, t.getMessage());
+        logger.error("MockInventoryService fallback triggered for product {} due to: {}", productId, t);
         return InventoryStatus.SERVICE_UNAVAILABLE;
     }
 }
