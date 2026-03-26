@@ -6,9 +6,9 @@ spring:
       enabled: true
     
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/orders_db}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:password}
+    url: jdbc:postgresql://localhost:5432/orders_db
+    username: postgres
+    password: password
     driver-class-name: org.postgresql.Driver
     
   jpa:
@@ -22,7 +22,7 @@ spring:
 app:
   security:
     jwt:
-      secret: ${JWT_SECRET:"dGhpcyBpcyBhIHNlY3VyZSBzZWNyZXQga2V5IGZvciBqd3QgdG9rZW4gZ2VuZXJhdGlvbiE="}
+      secret: "dGhpcyBpcyBhIHNlY3VyZSBzZWNyZXQga2V5IGZvciBqd3QgdG9rZW4gZ2VuZXJhdGlvbiE="
       expirationMs: 3600000 # 1 Hour
 
 server:
