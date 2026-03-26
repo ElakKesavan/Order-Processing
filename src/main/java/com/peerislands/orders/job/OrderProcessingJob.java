@@ -5,18 +5,19 @@ import com.peerislands.orders.model.OrderStatus;
 import com.peerislands.orders.repository.OrderRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@RequiredArgsConstructor
 public class OrderProcessingJob {
     private static final Logger logger = LoggerFactory.getLogger(OrderProcessingJob.class);
 
-    @Autowired private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
     @Scheduled(fixedRate = 300000) // 5 minutes
     @Transactional

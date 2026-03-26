@@ -8,15 +8,16 @@ import com.peerislands.orders.model.User;
 import com.peerislands.orders.payload.request.OrderItemRequest;
 import com.peerislands.orders.payload.request.OrderRequest;
 import java.math.BigDecimal;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class OrderOrchestrator {
 
-    @Autowired private InventoryService inventoryService;
-    @Autowired private PaymentService paymentService;
-    @Autowired private OrderPricingCalculator pricingCalculator;
+    private final InventoryService inventoryService;
+    private final PaymentService paymentService;
+    private final OrderPricingCalculator pricingCalculator;
 
     public void orchestrate(User user, Order order, OrderRequest request) {
         BigDecimal totalAmount = pricingCalculator.calculateTotalAmount(request);

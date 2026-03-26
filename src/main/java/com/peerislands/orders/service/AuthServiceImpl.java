@@ -8,7 +8,7 @@ import com.peerislands.orders.payload.response.JwtResponse;
 import com.peerislands.orders.repository.UserRepository;
 import com.peerislands.orders.security.jwt.JwtUtils;
 import com.peerislands.orders.security.services.UserDetailsImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,15 +17,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    @Autowired private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired private PasswordEncoder encoder;
+    private final PasswordEncoder encoder;
 
-    @Autowired private JwtUtils jwtUtils;
+    private final JwtUtils jwtUtils;
 
     public void register(SignupRequest signUpRequest) {
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {

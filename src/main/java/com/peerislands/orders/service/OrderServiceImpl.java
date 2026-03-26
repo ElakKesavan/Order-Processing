@@ -9,7 +9,7 @@ import com.peerislands.orders.payload.request.OrderFilter;
 import com.peerislands.orders.payload.request.OrderRequest;
 import com.peerislands.orders.repository.OrderRepository;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 @Service
+@RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
     private static final Map<String, Sort> SORT_MAPPINGS =
@@ -29,13 +30,13 @@ public class OrderServiceImpl implements OrderService {
                     "createdat", Sort.by(Sort.Direction.DESC, "createdAt"),
                     "updatedat", Sort.by(Sort.Direction.DESC, "updatedAt"));
 
-    @Autowired private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
-    @Autowired private OrderStatusValidator orderStatusValidator;
+    private final OrderStatusValidator orderStatusValidator;
 
-    @Autowired private OrderAuthorizationService orderAuthorizationService;
+    private final OrderAuthorizationService orderAuthorizationService;
 
-    @Autowired private OrderOrchestrator orderOrchestrator;
+    private final OrderOrchestrator orderOrchestrator;
 
     @Transactional
     public Order createOrder(User user, OrderRequest request) {

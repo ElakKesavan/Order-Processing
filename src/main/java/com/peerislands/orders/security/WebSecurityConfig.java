@@ -4,8 +4,7 @@ import com.peerislands.orders.security.jwt.AuthEntryPointJwt;
 import com.peerislands.orders.security.jwt.AuthTokenFilter;
 import com.peerislands.orders.security.jwt.JwtUtils;
 import com.peerislands.orders.security.services.AuthenticationHelper;
-import com.peerislands.orders.security.services.UserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +13,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,16 +22,17 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class WebSecurityConfig {
-    @Autowired UserDetailsServiceImpl userDetailsService;
+    private final UserDetailsService userDetailsService;
 
-    @Autowired private AuthEntryPointJwt unauthorizedHandler;
+    private final AuthEntryPointJwt unauthorizedHandler;
 
-    @Autowired private CorsConfigurationSource corsConfigurationSource;
+    private final CorsConfigurationSource corsConfigurationSource;
 
-    @Autowired private JwtUtils jwtUtils;
+    private final JwtUtils jwtUtils;
 
-    @Autowired private AuthenticationHelper authenticationHelper;
+    private final AuthenticationHelper authenticationHelper;
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
