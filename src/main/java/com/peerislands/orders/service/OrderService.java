@@ -8,6 +8,7 @@ import com.peerislands.orders.model.User;
 import com.peerislands.orders.payload.request.OrderFilter;
 import com.peerislands.orders.payload.request.OrderRequest;
 import com.peerislands.orders.repository.OrderRepository;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,14 @@ import org.springframework.util.StringUtils;
 
 @Service
 public class OrderService {
+
+    private static final Map<String, Sort> SORT_MAPPINGS =
+            Map.of(
+                    "orderid", Sort.by(Sort.Direction.ASC, "id"),
+                    "customerid", Sort.by(Sort.Direction.ASC, "user.id"),
+                    "userid", Sort.by(Sort.Direction.ASC, "user.id"),
+                    "createdat", Sort.by(Sort.Direction.DESC, "createdAt"),
+                    "updatedat", Sort.by(Sort.Direction.DESC, "updatedAt"));
 
     @Autowired private OrderRepository orderRepository;
 
@@ -71,23 +80,8 @@ public class OrderService {
     private Pageable createPageable(int page, int size, String sortBy) {
         Sort sort = Sort.unsorted();
         if (StringUtils.hasText(sortBy)) {
-            String sanitizedSort =
-                    sortBy.toLowerCase().replace(" ", "").replace("-", "").replace("_", "");
-            switch (sanitizedSort) {
-                case "orderid":
-                    sort = Sort.by(Sort.Direction.ASC, "id");
-                    break;
-                case "customerid":
-                case "userid":
-                    sort = Sort.by(Sort.Direction.ASC, "user.id");
-                    break;
-                case "createdat":
-                    sort = Sort.by(Sort.Direction.DESC, "createdAt");
-                    break;
-                case "updatedat":
-                    sort = Sort.by(Sort.Direction.DESC, "updatedAt");
-                    break;
-            }
+            String sanitizedSort = sortBy.toLowerCase().replaceAll("[\\s_-]", "");
+            sort = SORT_MAPPINGS.getOrDefault(sanitizedSort, Sort.unsorted());
         }
 
         if (sort.isUnsorted()) {
