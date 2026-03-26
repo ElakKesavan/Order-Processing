@@ -61,6 +61,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.BAD_REQUEST, "Invalid Request", ex.getMessage());
     }
 
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolationException(
+            jakarta.validation.ConstraintViolationException ex) {
+        String detail =
+                ex.getConstraintViolations().stream()
+                        .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                        .collect(java.util.stream.Collectors.joining(", "));
+        return ProblemDetailFactory.create(HttpStatus.BAD_REQUEST, "Validation Error", detail);
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGlobalException(Exception ex) {
         log.error("Unhandled exception caught: ", ex);
