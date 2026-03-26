@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MockPaymentService {
+public class MockPaymentService implements PaymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(MockPaymentService.class);
 

@@ -7,16 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MockInventoryService {
+public class MockInventoryService implements InventoryService {
 
     private static final Logger logger = LoggerFactory.getLogger(MockInventoryService.class);
     private final Random random = new Random();
-
-    public enum InventoryStatus {
-        SUCCESS,
-        INSUFFICIENT_STOCK,
-        SERVICE_UNAVAILABLE
-    }
 
     @CircuitBreaker(name = "inventoryService", fallbackMethod = "fallbackCheckAndUpdateInventory")
     public InventoryStatus checkAndUpdateInventory(String productId, int quantity) {

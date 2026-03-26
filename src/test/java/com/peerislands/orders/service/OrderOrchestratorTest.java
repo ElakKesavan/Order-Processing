@@ -23,8 +23,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class OrderOrchestratorTest {
 
-    @Mock private MockInventoryService inventoryService;
-    @Mock private MockPaymentService paymentService;
+    @Mock private InventoryService inventoryService;
+    @Mock private PaymentService paymentService;
     @Mock private OrderPricingCalculator pricingCalculator;
 
     @InjectMocks private OrderOrchestrator orchestrator;
@@ -43,7 +43,7 @@ public class OrderOrchestratorTest {
 
         when(pricingCalculator.calculateTotalAmount(request)).thenReturn(new BigDecimal("20.00"));
         when(inventoryService.checkAndUpdateInventory("PROD1", 2))
-                .thenReturn(MockInventoryService.InventoryStatus.SUCCESS);
+                .thenReturn(InventoryService.InventoryStatus.SUCCESS);
         when(paymentService.processPayment(1L, new BigDecimal("20.00"))).thenReturn(true);
 
         orchestrator.orchestrate(user, order, request);
@@ -66,7 +66,7 @@ public class OrderOrchestratorTest {
 
         when(pricingCalculator.calculateTotalAmount(request)).thenReturn(new BigDecimal("20.00"));
         when(inventoryService.checkAndUpdateInventory("PROD1", 2))
-                .thenReturn(MockInventoryService.InventoryStatus.INSUFFICIENT_STOCK);
+                .thenReturn(InventoryService.InventoryStatus.INSUFFICIENT_STOCK);
 
         assertThrows(
                 InventoryUnavailableException.class,
@@ -86,7 +86,7 @@ public class OrderOrchestratorTest {
 
         when(pricingCalculator.calculateTotalAmount(request)).thenReturn(new BigDecimal("20.00"));
         when(inventoryService.checkAndUpdateInventory("PROD1", 2))
-                .thenReturn(MockInventoryService.InventoryStatus.SUCCESS);
+                .thenReturn(InventoryService.InventoryStatus.SUCCESS);
         when(paymentService.processPayment(any(), any())).thenReturn(false);
 
         assertThrows(

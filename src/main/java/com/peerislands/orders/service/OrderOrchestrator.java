@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderOrchestrator {
 
-    @Autowired private MockInventoryService inventoryService;
-    @Autowired private MockPaymentService paymentService;
+    @Autowired private InventoryService inventoryService;
+    @Autowired private PaymentService paymentService;
     @Autowired private OrderPricingCalculator pricingCalculator;
 
     public void orchestrate(User user, Order order, OrderRequest request) {
@@ -23,11 +23,11 @@ public class OrderOrchestrator {
         order.setTotalAmount(totalAmount);
 
         for (OrderItemRequest itemReq : request.getItems()) {
-            MockInventoryService.InventoryStatus inventoryStatus =
+            InventoryService.InventoryStatus inventoryStatus =
                     inventoryService.checkAndUpdateInventory(
                             itemReq.getProductId(), itemReq.getQuantity());
 
-            if (inventoryStatus != MockInventoryService.InventoryStatus.SUCCESS) {
+            if (inventoryStatus != InventoryService.InventoryStatus.SUCCESS) {
                 throw new InventoryUnavailableException(
                         "Order failed due to inventory status: "
                                 + inventoryStatus

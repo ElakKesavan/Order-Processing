@@ -44,7 +44,7 @@ public class OrderServiceTest {
 
     @Mock private OrderOrchestrator orderOrchestrator;
 
-    @InjectMocks private OrderService orderService;
+    @InjectMocks private OrderServiceImpl orderService;
 
     @Test
     void createOrder_Success() {
