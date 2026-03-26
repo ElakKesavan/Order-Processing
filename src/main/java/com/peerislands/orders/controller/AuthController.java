@@ -51,7 +51,8 @@ public class AuthController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ProblemDetail.class)))
             })
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<JwtResponse> authenticateUser(
+            @Valid @RequestBody LoginRequest loginRequest) {
         JwtResponse response = authService.authenticate(loginRequest);
         return ResponseEntity.ok(response);
     }
