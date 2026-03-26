@@ -1,6 +1,9 @@
 spring:
   application:
     name: order-processing
+  mvc:
+    problemdetails:
+      enabled: true
     
   datasource:
     url: jdbc:postgresql://localhost:5432/orders_db

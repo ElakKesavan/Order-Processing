@@ -2,6 +2,8 @@ package com.peerislands.orders.security;
 
 import com.peerislands.orders.security.jwt.AuthEntryPointJwt;
 import com.peerislands.orders.security.jwt.AuthTokenFilter;
+import com.peerislands.orders.security.jwt.JwtUtils;
+import com.peerislands.orders.security.services.AuthenticationHelper;
 import com.peerislands.orders.security.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -27,10 +29,9 @@ public class WebSecurityConfig {
 
     @Autowired private CorsConfigurationSource corsConfigurationSource;
 
-    @Bean
-    public AuthTokenFilter authenticationJwtTokenFilter() {
-        return new AuthTokenFilter();
-    }
+    @Autowired private JwtUtils jwtUtils;
+
+    @Autowired private AuthenticationHelper authenticationHelper;
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -76,7 +77,8 @@ public class WebSecurityConfig {
         http.authenticationProvider(authenticationProvider());
 
         http.addFilterBefore(
-                authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+                new AuthTokenFilter(jwtUtils, userDetailsService, authenticationHelper),
+                UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

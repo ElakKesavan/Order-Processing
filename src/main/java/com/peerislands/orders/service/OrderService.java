@@ -1,5 +1,10 @@
 package com.peerislands.orders.service;
 
+import com.peerislands.orders.exception.InvalidOrderStatusTransitionException;
+import com.peerislands.orders.exception.InventoryUnavailableException;
+import com.peerislands.orders.exception.OrderNotFoundException;
+import com.peerislands.orders.exception.PaymentFailedException;
+import com.peerislands.orders.exception.UnauthorizedOrderAccessException;
 import com.peerislands.orders.model.Order;
 import com.peerislands.orders.model.OrderItem;
 import com.peerislands.orders.model.OrderStatus;
@@ -41,7 +46,7 @@ public class OrderService {
                             itemReq.getProductId(), itemReq.getQuantity());
 
             if (inventoryStatus != MockInventoryService.InventoryStatus.SUCCESS) {
-                throw new IllegalStateException(
+                throw new InventoryUnavailableException(
                         "Order failed due to inventory status: "
                                 + inventoryStatus
                                 + " for product "
@@ -62,7 +67,7 @@ public class OrderService {
 
         boolean paymentSuccess = paymentService.processPayment(user.getId(), totalAmount);
         if (!paymentSuccess) {
-            throw new IllegalStateException("Payment authorization failed for order.");
+            throw new PaymentFailedException("Payment authorization failed for order.");
         }
 
         return orderRepository.save(order);
@@ -124,12 +129,10 @@ public class OrderService {
                 orderRepository
                         .findById(orderId)
                         .orElseThrow(
-                                () ->
-                                        new java.util.NoSuchElementException(
-                                                "Order not found: " + orderId));
+                                () -> new OrderNotFoundException("Order not found: " + orderId));
 
         if (user.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(user.getId())) {
-            throw new SecurityException("Unauthorized access to order.");
+            throw new UnauthorizedOrderAccessException("Unauthorized access to order.");
         }
 
         return order;
@@ -141,33 +144,33 @@ public class OrderService {
                 orderRepository
                         .findById(orderId)
                         .orElseThrow(
-                                () ->
-                                        new java.util.NoSuchElementException(
-                                                "Order not found: " + orderId));
+                                () -> new OrderNotFoundException("Order not found: " + orderId));
 
         // 1. Authorization check
         if (actor.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(actor.getId())) {
-            throw new SecurityException("You can only update your own orders.");
+            throw new UnauthorizedOrderAccessException("You can only update your own orders.");
         }
 
         // 2. Role-specific constraints
         if (actor.getRole() == Role.CUSTOMER) {
             if (newStatus != OrderStatus.CANCELLED) {
-                throw new IllegalArgumentException(
+                throw new InvalidOrderStatusTransitionException(
                         "Customers can only update status to CANCELLED.");
             }
             if (order.getStatus() != OrderStatus.PENDING) {
-                throw new IllegalStateException(
+                throw new InvalidOrderStatusTransitionException(
                         "Orders can only be cancelled while in PENDING status.");
             }
         } else if (actor.getRole() == Role.ADMIN) {
             // Admin specific rules
             if (newStatus == OrderStatus.PENDING) {
-                throw new IllegalArgumentException("Cannot manually reset an order to PENDING.");
+                throw new InvalidOrderStatusTransitionException(
+                        "Cannot manually reset an order to PENDING.");
             }
             // Logic to prevent moving backwards after shipping
             if (order.getStatus() == OrderStatus.DELIVERED && newStatus == OrderStatus.SHIPPED) {
-                throw new IllegalStateException("Cannot move a delivered order back to SHIPPED.");
+                throw new InvalidOrderStatusTransitionException(
+                        "Cannot move a delivered order back to SHIPPED.");
             }
         }
 

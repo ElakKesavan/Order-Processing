@@ -14,8 +14,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -44,16 +48,11 @@ public class AuthController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = MessageResponse.class)))
+                                        schema = @Schema(implementation = ProblemDetail.class)))
             })
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-        try {
-            JwtResponse response = authService.authenticate(loginRequest);
-            return ResponseEntity.ok(response);
-        } catch (org.springframework.security.core.AuthenticationException e) {
-            return ResponseEntity.status(401)
-                    .body(new MessageResponse("Bad credentials: " + e.getMessage()));
-        }
+        JwtResponse response = authService.authenticate(loginRequest);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
@@ -76,15 +75,11 @@ public class AuthController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = MessageResponse.class)))
+                                        schema = @Schema(implementation = ProblemDetail.class)))
             })
     public ResponseEntity<MessageResponse> registerUser(
             @Valid @RequestBody SignupRequest signUpRequest) {
-        try {
-            authService.register(signUpRequest);
-            return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+        authService.register(signUpRequest);
+        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 }
