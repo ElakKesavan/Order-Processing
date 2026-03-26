@@ -1,13 +1,13 @@
 package com.peerislands.orders.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.peerislands.orders.exception.ProblemDetailFactory;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -18,9 +18,12 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class AuthEntryPointJwt implements AuthenticationEntryPoint {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthEntryPointJwt.class);
+
+    private final ObjectMapper objectMapper;
 
     @Override
     public void commence(
@@ -38,8 +41,6 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
                         HttpStatus.UNAUTHORIZED, "Unauthorized", authException.getMessage());
         problemDetail.setInstance(URI.create(request.getServletPath()));
 
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.writeValue(response.getOutputStream(), problemDetail);
+        objectMapper.writeValue(response.getOutputStream(), problemDetail);
     }
 }
