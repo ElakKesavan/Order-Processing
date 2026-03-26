@@ -5,6 +5,7 @@ import com.peerislands.orders.model.Order;
 import com.peerislands.orders.model.OrderStatus;
 import com.peerislands.orders.model.Role;
 import com.peerislands.orders.model.User;
+import jakarta.validation.constraints.NotNull;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
@@ -36,7 +37,8 @@ public class OrderStatusValidator {
         VALID_TRANSITIONS.put(Role.ADMIN, adminTransitions);
     }
 
-    public void validateTransition(Order order, OrderStatus newStatus, User actor) {
+    public void validateTransition(
+            @NotNull Order order, @NotNull OrderStatus newStatus, @NotNull User actor) {
         Role role = actor.getRole();
         OrderStatus currentStatus = order.getStatus();
 
@@ -51,7 +53,8 @@ public class OrderStatusValidator {
         }
     }
 
-    private void throwInvalidTransition(Role role, OrderStatus current, OrderStatus next) {
+    private void throwInvalidTransition(
+            @NotNull Role role, @NotNull OrderStatus current, @NotNull OrderStatus next) {
         if (role == Role.CUSTOMER) {
             if (next != OrderStatus.CANCELLED) {
                 throw new InvalidOrderStatusTransitionException(

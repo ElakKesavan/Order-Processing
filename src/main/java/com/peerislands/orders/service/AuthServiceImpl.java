@@ -8,6 +8,8 @@ import com.peerislands.orders.payload.response.JwtResponse;
 import com.peerislands.orders.repository.UserRepository;
 import com.peerislands.orders.security.jwt.JwtUtils;
 import com.peerislands.orders.security.services.UserDetailsImpl;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,7 +30,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final JwtUtils jwtUtils;
 
-    public void register(SignupRequest signUpRequest) {
+    public void register(@NotNull @Valid SignupRequest signUpRequest) {
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             throw new IllegalArgumentException("Error: Email is already in use!");
         }
@@ -43,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
-    public JwtResponse authenticate(LoginRequest loginRequest) {
+    public JwtResponse authenticate(@NotNull @Valid LoginRequest loginRequest) {
         Authentication authentication =
                 authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(

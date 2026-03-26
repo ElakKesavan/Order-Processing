@@ -1,6 +1,7 @@
 package com.peerislands.orders.service;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import jakarta.validation.constraints.NotNull;
 import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ public class MockInventoryService implements InventoryService {
     private final Random random = new Random();
 
     @CircuitBreaker(name = "inventoryService", fallbackMethod = "fallbackCheckAndUpdateInventory")
-    public InventoryStatus checkAndUpdateInventory(String productId, int quantity) {
+    public InventoryStatus checkAndUpdateInventory(@NotNull String productId, int quantity) {
         logger.info("MockInventoryService: Reserving {} units of product {}", quantity, productId);
 
         int roll = random.nextInt(100);

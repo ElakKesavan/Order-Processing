@@ -7,6 +7,8 @@ import com.peerislands.orders.model.OrderItem;
 import com.peerislands.orders.model.User;
 import com.peerislands.orders.payload.request.OrderItemRequest;
 import com.peerislands.orders.payload.request.OrderRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,7 +21,8 @@ public class OrderOrchestrator {
     private final PaymentService paymentService;
     private final OrderPricingCalculator pricingCalculator;
 
-    public void orchestrate(User user, Order order, OrderRequest request) {
+    public void orchestrate(
+            @NotNull User user, @NotNull Order order, @NotNull @Valid OrderRequest request) {
         BigDecimal totalAmount = pricingCalculator.calculateTotalAmount(request);
         order.setTotalAmount(totalAmount);
 

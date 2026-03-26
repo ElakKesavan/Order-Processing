@@ -8,6 +8,8 @@ import com.peerislands.orders.model.User;
 import com.peerislands.orders.payload.request.OrderFilter;
 import com.peerislands.orders.payload.request.OrderRequest;
 import com.peerislands.orders.repository.OrderRepository;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -39,7 +41,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderOrchestrator orderOrchestrator;
 
     @Transactional
-    public Order createOrder(User user, OrderRequest request) {
+    public Order createOrder(@NotNull User user, @NotNull @Valid OrderRequest request) {
         Order order = new Order();
         order.setUser(user);
         order.setStatus(OrderStatus.PENDING);
@@ -50,7 +52,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Order> getOrders(User user, OrderFilter filter, int page, int size, String sortBy) {
+    public Page<Order> getOrders(
+            @NotNull User user, OrderFilter filter, int page, int size, String sortBy) {
         if (user.getRole() == Role.ADMIN) {
             return getAllOrders(filter, page, size, sortBy);
         }
@@ -59,7 +62,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     public Page<Order> getCustomerOrders(
-            User user, OrderFilter filter, int page, int size, String sortBy) {
+            @NotNull User user, OrderFilter filter, int page, int size, String sortBy) {
         Pageable pageable = createPageable(page, size, sortBy);
         OrderStatus status = (filter != null) ? filter.getStatus() : null;
         if (status != null) {
@@ -78,7 +81,7 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findAll(pageable);
     }
 
-    private Pageable createPageable(int page, int size, String sortBy) {
+    private static Pageable createPageable(int page, int size, String sortBy) {
         Sort sort = Sort.unsorted();
         if (StringUtils.hasText(sortBy)) {
             String sanitizedSort = sortBy.toLowerCase().replaceAll("[\\s_-]", "");
@@ -93,7 +96,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Order getOrderById(Long orderId, User user) {
+    public Order getOrderById(@NotNull Long orderId, @NotNull User user) {
         Order order =
                 orderRepository
                         .findById(orderId)
@@ -106,7 +109,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-    public void updateOrderStatus(Long orderId, OrderStatus newStatus, User actor) {
+    public void updateOrderStatus(
+            @NotNull Long orderId, @NotNull OrderStatus newStatus, @NotNull User actor) {
         Order order =
                 orderRepository
                         .findById(orderId)
