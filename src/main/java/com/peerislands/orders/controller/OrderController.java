@@ -2,7 +2,6 @@ package com.peerislands.orders.controller;
 
 import com.peerislands.orders.mapper.OrderMapper;
 import com.peerislands.orders.model.Order;
-import com.peerislands.orders.model.Role;
 import com.peerislands.orders.model.User;
 import com.peerislands.orders.payload.request.OrderFilter;
 import com.peerislands.orders.payload.request.OrderRequest;
@@ -124,12 +123,7 @@ public class OrderController {
 
         User user = authenticationHelper.getCurrentUser();
 
-        Page<Order> orders;
-        if (user.getRole() == Role.ADMIN) {
-            orders = orderService.getAllOrders(filters, page, size, sortBy);
-        } else {
-            orders = orderService.getCustomerOrders(user, filters, page, size, sortBy);
-        }
+        Page<Order> orders = orderService.getOrders(user, filters, page, size, sortBy);
         return ResponseEntity.ok(orders.map(orderMapper::toOrderResponse));
     }
 

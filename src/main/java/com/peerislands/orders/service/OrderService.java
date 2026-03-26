@@ -1,20 +1,13 @@
 package com.peerislands.orders.service;
 
-import com.peerislands.orders.exception.InvalidOrderStatusTransitionException;
-import com.peerislands.orders.exception.InventoryUnavailableException;
 import com.peerislands.orders.exception.OrderNotFoundException;
-import com.peerislands.orders.exception.PaymentFailedException;
-import com.peerislands.orders.exception.UnauthorizedOrderAccessException;
 import com.peerislands.orders.model.Order;
-import com.peerislands.orders.model.OrderItem;
 import com.peerislands.orders.model.OrderStatus;
 import com.peerislands.orders.model.Role;
 import com.peerislands.orders.model.User;
 import com.peerislands.orders.payload.request.OrderFilter;
-import com.peerislands.orders.payload.request.OrderItemRequest;
 import com.peerislands.orders.payload.request.OrderRequest;
 import com.peerislands.orders.repository.OrderRepository;
-import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,48 +22,29 @@ public class OrderService {
 
     @Autowired private OrderRepository orderRepository;
 
-    @Autowired private MockInventoryService inventoryService;
+    @Autowired private OrderStatusValidator orderStatusValidator;
 
-    @Autowired private MockPaymentService paymentService;
+    @Autowired private OrderAuthorizationService orderAuthorizationService;
+
+    @Autowired private OrderOrchestrator orderOrchestrator;
 
     @Transactional
     public Order createOrder(User user, OrderRequest request) {
-        BigDecimal totalAmount = BigDecimal.ZERO;
         Order order = new Order();
         order.setUser(user);
         order.setStatus(OrderStatus.PENDING);
 
-        for (OrderItemRequest itemReq : request.getItems()) {
-            MockInventoryService.InventoryStatus inventoryStatus =
-                    inventoryService.checkAndUpdateInventory(
-                            itemReq.getProductId(), itemReq.getQuantity());
-
-            if (inventoryStatus != MockInventoryService.InventoryStatus.SUCCESS) {
-                throw new InventoryUnavailableException(
-                        "Order failed due to inventory status: "
-                                + inventoryStatus
-                                + " for product "
-                                + itemReq.getProductId());
-            }
-
-            BigDecimal itemTotal =
-                    itemReq.getPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
-            totalAmount = totalAmount.add(itemTotal);
-
-            OrderItem item =
-                    new OrderItem(
-                            itemReq.getProductId(), itemReq.getQuantity(), itemReq.getPrice());
-            order.addItem(item);
-        }
-
-        order.setTotalAmount(totalAmount);
-
-        boolean paymentSuccess = paymentService.processPayment(user.getId(), totalAmount);
-        if (!paymentSuccess) {
-            throw new PaymentFailedException("Payment authorization failed for order.");
-        }
+        orderOrchestrator.orchestrate(user, order, request);
 
         return orderRepository.save(order);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Order> getOrders(User user, OrderFilter filter, int page, int size, String sortBy) {
+        if (user.getRole() == Role.ADMIN) {
+            return getAllOrders(filter, page, size, sortBy);
+        }
+        return getCustomerOrders(user, filter, page, size, sortBy);
     }
 
     @Transactional(readOnly = true)
@@ -131,9 +105,7 @@ public class OrderService {
                         .orElseThrow(
                                 () -> new OrderNotFoundException("Order not found: " + orderId));
 
-        if (user.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(user.getId())) {
-            throw new UnauthorizedOrderAccessException("Unauthorized access to order.");
-        }
+        orderAuthorizationService.validateOrderAccess(order, user);
 
         return order;
     }
@@ -147,32 +119,10 @@ public class OrderService {
                                 () -> new OrderNotFoundException("Order not found: " + orderId));
 
         // 1. Authorization check
-        if (actor.getRole() == Role.CUSTOMER && !order.getUser().getId().equals(actor.getId())) {
-            throw new UnauthorizedOrderAccessException("You can only update your own orders.");
-        }
+        orderAuthorizationService.validateOrderUpdateAccess(order, actor);
 
-        // 2. Role-specific constraints
-        if (actor.getRole() == Role.CUSTOMER) {
-            if (newStatus != OrderStatus.CANCELLED) {
-                throw new InvalidOrderStatusTransitionException(
-                        "Customers can only update status to CANCELLED.");
-            }
-            if (order.getStatus() != OrderStatus.PENDING) {
-                throw new InvalidOrderStatusTransitionException(
-                        "Orders can only be cancelled while in PENDING status.");
-            }
-        } else if (actor.getRole() == Role.ADMIN) {
-            // Admin specific rules
-            if (newStatus == OrderStatus.PENDING) {
-                throw new InvalidOrderStatusTransitionException(
-                        "Cannot manually reset an order to PENDING.");
-            }
-            // Logic to prevent moving backwards after shipping
-            if (order.getStatus() == OrderStatus.DELIVERED && newStatus == OrderStatus.SHIPPED) {
-                throw new InvalidOrderStatusTransitionException(
-                        "Cannot move a delivered order back to SHIPPED.");
-            }
-        }
+        // 2. State transition validation
+        orderStatusValidator.validateTransition(order, newStatus, actor);
 
         order.setStatus(newStatus);
         orderRepository.save(order);
