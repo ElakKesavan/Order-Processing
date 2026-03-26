@@ -32,10 +32,10 @@ public class OrderProcessingJob {
                     pendingOrders.size());
             for (Order order : pendingOrders) {
                 order.setStatus(OrderStatus.PROCESSING);
-                orderRepository.save(order);
                 logger.info(
                         "OrderProcessingJob: Order {} transitioned to PROCESSING.", order.getId());
             }
+            orderRepository.saveAll(pendingOrders);
         }
     }
 }
