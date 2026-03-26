@@ -1,14 +1,21 @@
 package com.peerislands.orders.payload.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Schema(description = "JWT authentication response")
 public class JwtResponse {
     @Schema(description = "JWT access token", example = "eyJhbGci...abc123")
     private String accessToken;
 
+    @Builder.Default
     @Schema(description = "Token type", example = "Bearer")
     private String tokenType = "Bearer";
 
@@ -20,11 +27,4 @@ public class JwtResponse {
 
     @Schema(description = "User role", example = "ROLE_CUSTOMER")
     private String role;
-
-    public JwtResponse(String accessToken, Long id, String email, String role) {
-        this.accessToken = accessToken;
-        this.id = id;
-        this.email = email;
-        this.role = role;
-    }
 }

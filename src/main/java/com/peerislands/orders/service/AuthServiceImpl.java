@@ -60,6 +60,11 @@ public class AuthServiceImpl implements AuthService {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String role = userDetails.getAuthorities().iterator().next().getAuthority();
 
-        return new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), role);
+        return JwtResponse.builder()
+                .accessToken(jwt)
+                .id(userDetails.getId())
+                .email(userDetails.getUsername())
+                .role(role)
+                .build();
     }
 }
