@@ -2,7 +2,6 @@ package com.peerislands.orders.controller;
 
 import com.peerislands.orders.mapper.OrderMapper;
 import com.peerislands.orders.model.Order;
-import com.peerislands.orders.model.Role;
 import com.peerislands.orders.model.User;
 import com.peerislands.orders.payload.request.OrderFilter;
 import com.peerislands.orders.payload.request.OrderRequest;
@@ -19,8 +18,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -38,13 +37,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/orders")
 @Tag(name = "Orders", description = "Order lifecycle management endpoints")
+@RequiredArgsConstructor
 public class OrderController {
 
-    @Autowired private OrderService orderService;
+    private final OrderService orderService;
 
-    @Autowired private OrderMapper orderMapper;
+    private final OrderMapper orderMapper;
 
-    @Autowired private AuthenticationHelper authenticationHelper;
+    private final AuthenticationHelper authenticationHelper;
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -124,12 +124,7 @@ public class OrderController {
 
         User user = authenticationHelper.getCurrentUser();
 
-        Page<Order> orders;
-        if (user.getRole() == Role.ADMIN) {
-            orders = orderService.getAllOrders(filters, page, size, sortBy);
-        } else {
-            orders = orderService.getCustomerOrders(user, filters, page, size, sortBy);
-        }
+        Page<Order> orders = orderService.getOrders(user, filters, page, size, sortBy);
         return ResponseEntity.ok(orders.map(orderMapper::toOrderResponse));
     }
 

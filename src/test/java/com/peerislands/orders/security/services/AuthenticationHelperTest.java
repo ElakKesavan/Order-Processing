@@ -24,7 +24,7 @@ public class AuthenticationHelperTest {
 
     @Mock private UserDetailsImpl userDetails;
 
-    @InjectMocks private AuthenticationHelper authenticationHelper;
+    @InjectMocks private AuthenticationHelperImpl authenticationHelper;
 
     private User user;
 

@@ -1,7 +1,5 @@
 package com.peerislands.orders.exception;
 
-import java.net.URI;
-import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -17,94 +15,58 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(OrderNotFoundException.class)
     public ProblemDetail handleOrderNotFound(OrderNotFoundException ex) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Order Not Found");
-        problemDetail.setType(URI.create("about:blank"));
-        problemDetail.setProperty("timestamp", Instant.now());
-        return problemDetail;
+        return ProblemDetailFactory.create(
+                HttpStatus.NOT_FOUND, "Order Not Found", ex.getMessage());
     }
 
     @ExceptionHandler(UnauthorizedOrderAccessException.class)
     public ProblemDetail handleUnauthorizedAccess(UnauthorizedOrderAccessException ex) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
-        problemDetail.setTitle("Unauthorized Access");
-        problemDetail.setType(URI.create("about:blank"));
-        problemDetail.setProperty("timestamp", Instant.now());
-        return problemDetail;
+        return ProblemDetailFactory.create(
+                HttpStatus.FORBIDDEN, "Unauthorized Access", ex.getMessage());
     }
 
     @ExceptionHandler(InventoryUnavailableException.class)
     public ProblemDetail handleInventoryUnavailable(InventoryUnavailableException ex) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
-        problemDetail.setTitle("Inventory Unavailable");
-        problemDetail.setType(URI.create("about:blank"));
-        problemDetail.setProperty("timestamp", Instant.now());
-        return problemDetail;
+        return ProblemDetailFactory.create(
+                HttpStatus.UNPROCESSABLE_ENTITY, "Inventory Unavailable", ex.getMessage());
     }
 
     @ExceptionHandler(PaymentFailedException.class)
     public ProblemDetail handlePaymentFailed(PaymentFailedException ex) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(HttpStatus.PAYMENT_REQUIRED, ex.getMessage());
-        problemDetail.setTitle("Payment Failed");
-        problemDetail.setType(URI.create("about:blank"));
-        problemDetail.setProperty("timestamp", Instant.now());
-        return problemDetail;
+        return ProblemDetailFactory.create(
+                HttpStatus.PAYMENT_REQUIRED, "Payment Failed", ex.getMessage());
     }
 
     @ExceptionHandler(InvalidOrderStatusTransitionException.class)
     public ProblemDetail handleInvalidTransition(InvalidOrderStatusTransitionException ex) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        problemDetail.setTitle("Invalid Order Status Transition");
-        problemDetail.setType(URI.create("about:blank"));
-        problemDetail.setProperty("timestamp", Instant.now());
-        return problemDetail;
+        return ProblemDetailFactory.create(
+                HttpStatus.CONFLICT, "Invalid Order Status Transition", ex.getMessage());
     }
 
     @ExceptionHandler(OrderProcessingException.class)
     public ProblemDetail handleGenericOrderProcessingException(OrderProcessingException ex) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problemDetail.setTitle("Order Processing Error");
-        problemDetail.setType(URI.create("about:blank"));
-        problemDetail.setProperty("timestamp", Instant.now());
-        return problemDetail;
+        return ProblemDetailFactory.create(
+                HttpStatus.BAD_REQUEST, "Order Processing Error", ex.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ProblemDetail handleAuthenticationException(AuthenticationException ex) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(
-                        HttpStatus.UNAUTHORIZED, "Invalid credentials: " + ex.getMessage());
-        problemDetail.setTitle("Authentication Failed");
-        problemDetail.setType(URI.create("about:blank"));
-        problemDetail.setProperty("timestamp", Instant.now());
-        return problemDetail;
+        return ProblemDetailFactory.create(
+                HttpStatus.UNAUTHORIZED, "Authentication Failed", ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgumentException(IllegalArgumentException ex) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problemDetail.setTitle("Invalid Request");
-        problemDetail.setType(URI.create("about:blank"));
-        problemDetail.setProperty("timestamp", Instant.now());
-        return problemDetail;
+        return ProblemDetailFactory.create(
+                HttpStatus.BAD_REQUEST, "Invalid Request", ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGlobalException(Exception ex) {
         log.error("Unhandled exception caught: ", ex);
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(
-                        HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
-        problemDetail.setTitle("Internal Server Error");
-        problemDetail.setType(URI.create("about:blank"));
-        problemDetail.setProperty("timestamp", Instant.now());
-        return problemDetail;
+        return ProblemDetailFactory.create(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal Server Error",
+                "An unexpected error occurred");
     }
 }
