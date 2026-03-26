@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final JwtUtils jwtUtils;
 
+    @Transactional
     public void register(@NotNull @Valid SignupRequest signUpRequest) {
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             throw new IllegalArgumentException("Error: Email is already in use!");
@@ -45,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
     public JwtResponse authenticate(@NotNull @Valid LoginRequest loginRequest) {
         Authentication authentication =
                 authenticationManager.authenticate(
@@ -57,6 +60,11 @@ public class AuthServiceImpl implements AuthService {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String role = userDetails.getAuthorities().iterator().next().getAuthority();
 
-        return new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), role);
+        return JwtResponse.builder()
+                .accessToken(jwt)
+                .id(userDetails.getId())
+                .email(userDetails.getUsername())
+                .role(role)
+                .build();
     }
 }

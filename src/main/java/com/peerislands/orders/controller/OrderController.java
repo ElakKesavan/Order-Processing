@@ -18,12 +18,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -38,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/orders")
 @Tag(name = "Orders", description = "Order lifecycle management endpoints")
 @RequiredArgsConstructor
+@Validated
 public class OrderController {
 
     private final OrderService orderService;
@@ -118,8 +122,12 @@ public class OrderController {
                     String sortBy,
             @Parameter(description = "Zero-based page index", example = "0")
                     @RequestParam(defaultValue = "0")
+                    @Min(0)
                     int page,
-            @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20")
+            @Parameter(description = "Page size", example = "20")
+                    @RequestParam(defaultValue = "20")
+                    @Min(1)
+                    @Max(100)
                     int size) {
 
         User user = authenticationHelper.getCurrentUser();
