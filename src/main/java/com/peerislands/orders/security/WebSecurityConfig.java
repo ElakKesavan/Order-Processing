@@ -66,6 +66,7 @@ public class WebSecurityConfig {
                         auth ->
                                 auth.requestMatchers(
                                                 "/api/v1/auth/**",
+                                                "/actuator/health",
                                                 "/error",
                                                 "/swagger-ui/**",
                                                 "/swagger-ui.html",
