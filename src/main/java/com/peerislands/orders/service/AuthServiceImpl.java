@@ -47,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public JwtResponse authenticate(@NotNull @Valid LoginRequest loginRequest) {
         Authentication authentication =
                 authenticationManager.authenticate(
